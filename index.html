@@ -138,7 +138,6 @@
   .harp-wrap { overflow-x: auto; margin: 12px 0 6px; padding-bottom: 4px; }
   .harp { min-width: 540px; display: flex; flex-direction: column; gap: 0; }
   .hrow { display: grid; grid-template-columns: repeat(10, 1fr); }
-  .hrow-ob, .hrow-bb2, .hrow-bb1 { align-items: end; }
   .hcell {
     font: inherit; color: var(--harp-ink); border: 1.5px solid var(--fg); margin: 0 -0.75px -1.5px; padding: 6px 2px 4px;
     display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 54px; cursor: pointer;
@@ -148,14 +147,12 @@
   .hcell small { font-size: .72rem; font-weight: 700; line-height: 1.2; }
   .hcell.empty { border: none; background: none; cursor: default; }
   .hcell.k-main { background: var(--harp-main); }
-  .hcell.k-bend { background: var(--harp-bend); margin: 0 6px; border-radius: 2px; }
-  .hcell.k-ob { background: var(--harp-bend); margin: 0 6px 8px; border-style: dashed; border-radius: 2px; }
+  .hcell.k-bend { background: var(--harp-bend); }
+  .hcell.k-ob, .hcell.k-od { background: var(--harp-bend); border-style: dashed; }
   .hrow-blow .hcell:first-child { border-top-left-radius: 14px; }
   .hrow-blow .hcell:last-child { border-top-right-radius: 14px; }
   .hrow-draw .hcell:first-child { border-bottom-left-radius: 14px; }
   .hrow-draw .hcell:last-child { border-bottom-right-radius: 14px; }
-  .hrow-db1 { margin-top: 10px; }
-  .hrow-bb1 { margin-bottom: 10px; }
   .hcell.dim { opacity: .35; }
   .hcell.lit { color: var(--lit-ink); transform: scale(1.0); }
   .hcell.lit.r1 { background: var(--r1); }
@@ -170,19 +167,30 @@
   .hnum span { background: #000; color: #fff; font-size: .8rem; font-weight: 600; padding: 2px 7px; border-radius: 3px; }
   .hinfo { min-height: 1.6em; margin: 6px 0 10px; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
   .presets { margin: 8px 0 4px; }
+  .presets-box { margin: 8px 0; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--card); }
+  .presets-box summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+  .presets-box summary small { color: var(--muted); font-weight: 400; margin-left: 6px; }
   .presets .chips { margin: 4px 0; }
   .mapdet { margin: 14px 0; }
   .mapdet summary { cursor: pointer; color: var(--accent); font-weight: 600; }
   .lessons { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin: 16px 0; padding: 12px 16px;
     background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 6px; }
   .lessons a { font-weight: 600; }
+  .tag { display: inline-block; font-size: .78rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+  .tag { color: var(--fg); border-color: var(--line); background: var(--card); }
+  .tag-res::before { content: '● '; }
+  .tag-col::before { content: '◐ '; }
+  .tag-ten::before { content: '↗ '; }
+  .tag-ten { border-style: dashed; border-color: var(--muted); }
+  .degtable td { vertical-align: top; }
+  .degtable td:last-child { min-width: 260px; }
 </style>
 </head>
 <body>
 <main>
 <h1>Карта гармошки</h1>
 <p class="meta">Диатоническая гармошка, строй Richter, 10 отверстий</p>
-<p>Выберите строй гармошки, позицию и ступени (или готовую гамму): на схеме подсветятся отверстия, в которых они звучат. Нажмите на любую ноту, чтобы увидеть, как её сыграть.</p>
+<p>Выберите строй гармошки, позицию и ступени (или готовую гамму): на схеме подсветятся отверстия, в которых они звучат. Строку «Строим от ступени» можно переключить на другую ступень тональности: тогда тот же набор строится от неё. Например, IV + миксолидийский лад показывает, что играть на аккорде IV7. Нажмите на любую ноту, чтобы увидеть, как её сыграть.</p>
 
 <div class="lessons">
   <b>Уроки</b>
@@ -193,10 +201,14 @@
   <label class="hsel"><b>Гармошка</b> <select id="harpSel"></select></label>
   <label class="hsel"><b>Позиция</b> <select id="posSel"></select></label>
   <span class="htonic" id="harpTonic"></span>
-  <label class="hchk"><input type="checkbox" id="showOb"> показать овербенды</label>
+  <label class="hchk"><input type="checkbox" id="showOb"> овербенды</label>
+  <label class="hchk"><input type="checkbox" id="showOd"> овердроу</label>
 </div>
 
+<div class="chips" id="rootChips"></div>
 <div class="chips" id="degChips"></div>
+<details class="presets-box" id="presetsBox">
+<summary><span>Готовые гаммы и лады</span> <small id="presetName"></small></summary>
 <div class="presets" id="presets">
   <div class="chips small"><span class="chips-label">Блюз и пентатоники:</span>
     <button type="button" class="chip" data-preset="0,3,5,6,7,10">блюзовая гамма</button>
@@ -242,27 +254,58 @@
   </div>
   <div class="chips small"><button type="button" class="chip" data-preset="">очистить</button></div>
 </div>
+</details>
 
 <div class="harp-wrap"><div class="harp" id="harp"></div></div>
 <p class="hinfo" id="hInfo"></p>
-<p style="font-size:.9rem;color:var(--muted)">Сверху вниз: <b>овербенды и овердроу</b> (пунктир, если включены), <b>бенды на выдохе</b> (8–10), <b>выдох</b>, номера отверстий, <b>вдох</b>, <b>бенды на вдохе</b> (½, 1 и 1½ тона). Цвет: <span class="r1">1</span> тоника, <span class="r3">3 / ♭3</span> терции, <span class="r5">5 / ♭5</span> квинты, <span class="r7">7 / ♭7</span> септимы, серый — остальные ступени.</p>
+<p style="font-size:.9rem;color:var(--muted)">Над выдохом: <b>бенды на выдохе</b> (8–10) и <b>овербенды</b> (1, 4–6). Под вдохом: <b>бенды на вдохе</b> (½, 1 и 1½ тона) и <b>овердроу</b> (7, 9, 10). Овербенды и овердроу рисуются пунктиром и включаются галочками. Цвет: <span class="r1">1</span> тоника, <span class="r3">3 / ♭3</span> терции, <span class="r5">5 / ♭5</span> квинты, <span class="r7">7 / ♭7</span> септимы, серый — остальные ступени.</p>
 
 <h2>Ступени и интервалы</h2>
+<p>Ступени считаются от выбранной основы: от тоники (I) или от той ступени, которую вы выбрали в строке «Строим от ступени». Удобнее всего думать о них как о ролях: одна и та же нота отверстия под разными аккордами играет разные роли.</p>
+
+<div class="key"><b>Какие ступени важнее всего:</b>
+  <ul>
+    <li><span class="r1">1</span> — самая безопасная нота, на ней можно заканчивать фразу;</li>
+    <li><span class="r3">3</span> — сильнее всех говорит, какой сейчас аккорд (мажор или минор);</li>
+    <li><span class="r7">♭7</span> — придаёт блюзовый «доминантовый» цвет и тянет к следующему аккорду;</li>
+    <li><span class="r5">5</span> — нейтральная, подходит почти всегда.</li>
+  </ul>
+  <b>Практические правила:</b>
+  <ul>
+    <li>В момент смены аккорда попадайте на его <span class="r3">3</span> или <span class="r7">♭7</span>. Тогда слушатель «слышит гармонию» даже без аккомпанемента.</li>
+    <li>Заканчивайте фразу на <span class="r1">1</span>, <span class="r5">5</span> или <span class="r3">3</span>: это опорные ступени, на них фраза звучит завершённой.</li>
+    <li>Напряжённые ступени (♭2, 4, ♭5, ♭6, 7) долго не держите: разрешайте их на полтона или тон в соседнюю опорную. Именно это движение «напряжение → опора» и делает мелодию живой.</li>
+  </ul>
+</div>
+
+<p>Тип ступени: <span class="tag tag-res">опора</span> — устойчивая, на ней можно стоять; <span class="tag tag-col">краска</span> — добавляет характер, можно тянуть; <span class="tag tag-ten">напряжение</span> — хочет разрешиться в соседнюю ступень.</p>
 <div class="table-wrap">
-<table>
-  <tr><th>Полутонов от тоники</th><th>Ступень</th><th>Название</th><th>Как звучит</th></tr>
-  <tr><td>0</td><td><span class="r1">1</span></td><td>прима (тоника)</td><td>опора, «дом»</td></tr>
-  <tr><td>1</td><td>♭2</td><td>малая секунда</td><td>резкое трение</td></tr>
-  <tr><td>2</td><td>2</td><td>большая секунда</td><td>шаг, проходящая нота</td></tr>
-  <tr><td>3</td><td><span class="r3">♭3</span></td><td>малая терция</td><td>грустная, «блюзовая»</td></tr>
-  <tr><td>4</td><td><span class="r3">3</span></td><td>большая терция</td><td>светлая, мажорная</td></tr>
-  <tr><td>5</td><td>4</td><td>кварта</td><td>подвешенная, хочет вниз на 3</td></tr>
-  <tr><td>6</td><td><span class="r5">♭5</span></td><td>тритон</td><td>острая блюзовая нота</td></tr>
-  <tr><td>7</td><td><span class="r5">5</span></td><td>квинта</td><td>устойчивая, «пустая»</td></tr>
-  <tr><td>8</td><td>♭6</td><td>малая секста</td><td>тёмная</td></tr>
-  <tr><td>9</td><td>6</td><td>большая секста</td><td>сладкая, «кантри»</td></tr>
-  <tr><td>10</td><td><span class="r7">♭7</span></td><td>малая септима</td><td>блюзовая, тянет дальше</td></tr>
-  <tr><td>11</td><td><span class="r7">7</span></td><td>большая септима</td><td>«джазовая», рвётся к 1</td></tr>
+<table class="degtable">
+  <tr><th>Ступень</th><th>Полутонов</th><th>Название</th><th>Тип</th><th>Как звучит и как использовать</th></tr>
+  <tr><td><span class="r1">1</span></td><td>0</td><td>прима (тоника)</td><td><span class="tag tag-res">опора</span></td>
+    <td>«Дом». Самая безопасная нота: с неё начинают, на ней заканчивают фразы, её можно тянуть сколько угодно. Если потерялись — вернитесь на 1.</td></tr>
+  <tr><td>♭2</td><td>1</td><td>малая секунда</td><td><span class="tag tag-ten">напряжение</span></td>
+    <td>Самое резкое трение с тоникой. В блюзе — только быстрый подход к 1 сверху (♭2 → 1), не задерживайтесь. Даёт «испанский», фригийский колорит.</td></tr>
+  <tr><td>2</td><td>2</td><td>большая секунда</td><td><span class="tag tag-col">краска</span></td>
+    <td>Мягкая проходящая нота между 1 и 3: ходы 1–2–3 и ♭3–2–1. Над аккордом звучит как нона (9) — светлая краска, почти не конфликтует. Часто встречается в мажорном блюзе и кантри.</td></tr>
+  <tr><td><span class="r3">♭3</span></td><td>3</td><td>малая терция</td><td><span class="tag tag-res">опора</span> в миноре, <span class="tag tag-col">краска</span> в блюзе</td>
+    <td>Главная «блюзовая» нота. В миноре это опорная терция. Над мажорным аккордом даёт характерное блюзовое трение. Особенно хорошо звучит, если её чуть подтянуть вверх к 3 (бенд «между» ♭3 и 3).</td></tr>
+  <tr><td><span class="r3">3</span></td><td>4</td><td>большая терция</td><td><span class="tag tag-res">опора</span></td>
+    <td>Сильнее всех говорит, что аккорд мажорный. Попадание на 3 в момент смены аккорда — самый «гармоничный» ход. Над минорным аккордом звучит фальшиво: там нужна ♭3.</td></tr>
+  <tr><td>4</td><td>5</td><td>кварта</td><td><span class="tag tag-ten">напряжение</span> над мажором</td>
+    <td>Подвешенная нота-«пружина»: хочет вниз в 3 (или ♭3). В минорной пентатонике и блюзе — частая и вполне устойчивая нота (это основной тон аккорда IV). Над мажорным аккордом не тяните её долго.</td></tr>
+  <tr><td><span class="r5">♭5</span></td><td>6</td><td>тритон</td><td><span class="tag tag-ten">напряжение</span></td>
+    <td>Блюзовая нота, острая и неустойчивая. Лучше всего — как проходящая между 4 и 5 (4 → ♭5 → 5 или обратно) или как бенд, который «доезжает» до 5. Короткий акцент на ней звучит очень по-блюзовому, длинная — как ошибка.</td></tr>
+  <tr><td><span class="r5">5</span></td><td>7</td><td>квинта</td><td><span class="tag tag-res">опора</span></td>
+    <td>Нейтральная, подходит почти всегда: входит в мажорные, минорные и доминантовые аккорды. На ней можно тянуть и заканчивать фразу. Звучит «пусто», поэтому для характера добавляйте 3 или ♭7.</td></tr>
+  <tr><td>♭6</td><td>8</td><td>малая секста</td><td><span class="tag tag-ten">напряжение</span></td>
+    <td>Тёмная, минорная краска. Хочет разрешиться вниз в 5 (♭6 → 5). Характерна для натурального и гармонического минора; в блюзе — короткая проходящая.</td></tr>
+  <tr><td>6</td><td>9</td><td>большая секста</td><td><span class="tag tag-col">краска</span></td>
+    <td>Сладкая, светлая, «кантри» и свинг. Основа мажорной пентатоники и мажорного блюза; хорошо звучит в конце фразы над мажорным аккордом. Над минорным аккордом даёт дорийский цвет.</td></tr>
+  <tr><td><span class="r7">♭7</span></td><td>10</td><td>малая септима</td><td><span class="tag tag-col">краска</span></td>
+    <td>Блюзовый «доминантовый» цвет: превращает аккорд в 7 и тянет к следующему аккорду (I7 → IV, V7 → I). В блюзе её можно тянуть на любом аккорде — это одна из самых «правильных» нот жанра.</td></tr>
+  <tr><td><span class="r7">7</span></td><td>11</td><td>большая септима</td><td><span class="tag tag-ten">напряжение</span></td>
+    <td>Вводный тон: «джазовая», рвётся вверх к 1 (7 → 1). В блюзе над аккордом 7 конфликтует с ♭7, поэтому используйте её как короткий подход к 1 снизу. В мажоре и гармоническом миноре — обычная ступень гаммы.</td></tr>
 </table>
 </div>
 </main>
@@ -286,22 +329,29 @@
              ['4-я', 9, 5], ['5-я', 4, 2], ['12-я', 5, 3]];
   var KEYDEG = ['1', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
   var DEG_LI = [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6];
+  var ROMAN = ['I', '♭II', 'II', '♭III', 'III', 'IV', '♭V', 'V', '♭VI', 'VI', '♭VII', 'VII'];
 
-  var harp = 0, pos = 1, showObDefault = false;
+  var harp = 0, pos = 1, root = 0, presetsOpen = false, showObDefault = false, showOdDefault = false;
   var degs = { 0: true, 3: true, 5: true, 6: true, 7: true, 10: true };
   try {
     var s = JSON.parse(localStorage.getItem('harmonicaMap') || 'null');
     if (s) {
       if (HARPS[s.harp]) harp = s.harp;
       if (POS[s.pos]) pos = s.pos;
+      if (ROMAN[s.root]) root = s.root;
       if (s.degs) { degs = {}; s.degs.forEach(function (d) { degs[d] = true; }); }
       showObDefault = !!s.ob;
+      showOdDefault = !!s.od;
+      presetsOpen = !!s.pr;
     }
   } catch (e) {}
 
   function tonicPc() { return mod(HARPS[harp][1] + POS[pos][1], 12); }
   function tonicLi() { return mod(HARPS[harp][2] + POS[pos][2], 7); }
   function keyNote(rel) { return spell(tonicLi() + DEG_LI[mod(rel, 12)], tonicPc() + rel); }
+  // Нота на расстоянии r полутонов от выбранной ступени-основы
+  function rootNote(r) { return spell(tonicLi() + DEG_LI[root] + DEG_LI[mod(r, 12)], tonicPc() + root + r); }
+  function rootName() { return rootNote(0) + (root ? ' (' + ROMAN[root] + ' в ' + keyNote(0) + ')' : ''); }
   function degCls(rel) {
     return { 0: 'r1', 3: 'r3', 4: 'r3', 6: 'r5', 7: 'r5', 10: 'r7', 11: 'r7' }[rel] || 'rx';
   }
@@ -313,21 +363,23 @@
   var CELLS = [];
   for (var i = 0; i < 10; i++) {
     var n = i + 1, b = BLOW[i], d = DRAW[i], k;
-    CELLS.push({ hole: n, row: 'blow', semi: b, lab: n + ' blow', kind: 'main' });
-    CELLS.push({ hole: n, row: 'draw', semi: d, lab: n + ' draw', kind: 'main' });
+    CELLS.push({ hole: n, side: 'blow', lvl: 0, semi: b, lab: n + ' blow', kind: 'main' });
+    CELLS.push({ hole: n, side: 'draw', lvl: 0, semi: d, lab: n + ' draw', kind: 'main' });
     if (d > b) {
-      for (k = 1; k <= d - b - 1; k++) CELLS.push({ hole: n, row: 'db' + k, semi: d - k, lab: n + ' draw ' + BENDTXT[k], kind: 'bend' });
-      if (n === 1 || n >= 4) CELLS.push({ hole: n, row: 'ob', semi: d + 1, lab: n + ' overblow', kind: 'ob' });
+      for (k = 1; k <= d - b - 1; k++) CELLS.push({ hole: n, side: 'down', lvl: k, semi: d - k, lab: n + ' draw ' + BENDTXT[k], kind: 'bend' });
+      if (n === 1 || n >= 4) CELLS.push({ hole: n, side: 'up', lvl: 1, semi: d + 1, lab: n + ' overblow', kind: 'ob' });
     } else {
-      for (k = 1; k <= b - d - 1; k++) CELLS.push({ hole: n, row: 'bb' + k, semi: b - k, lab: n + ' blow ' + BENDTXT[k], kind: 'bend' });
-      if (n !== 8) CELLS.push({ hole: n, row: 'ob', semi: b + 1, lab: n + ' overdraw', kind: 'ob' });
+      for (k = 1; k <= b - d - 1; k++) CELLS.push({ hole: n, side: 'up', lvl: k, semi: b - k, lab: n + ' blow ' + BENDTXT[k], kind: 'bend' });
+      if (n !== 8) CELLS.push({ hole: n, side: 'down', lvl: 1, semi: b + 1, lab: n + ' overdraw', kind: 'od' });
     }
   }
-  var ROWS = ['ob', 'bb2', 'bb1', 'blow', 'num', 'draw', 'db1', 'db2', 'db3'];
 
   var $ = function (id) { return document.getElementById(id); };
-  var harpSel = $('harpSel'), posSel = $('posSel'), showOb = $('showOb'), hInfo = $('hInfo');
+  var harpSel = $('harpSel'), posSel = $('posSel'), showOb = $('showOb'), showOd = $('showOd'), hInfo = $('hInfo');
   showOb.checked = showObDefault;
+  showOd.checked = showOdDefault;
+  $('presetsBox').open = presetsOpen;
+  $('presetsBox').addEventListener('toggle', function () { save(); });
 
   HARPS.forEach(function (h, idx) {
     var o = document.createElement('option'); o.value = idx; o.textContent = h[0]; harpSel.appendChild(o);
@@ -337,6 +389,7 @@
   });
 
   function rel(cell) { return mod(cell.semi - POS[pos][1], 12); }
+  function fromRoot(cell) { return mod(rel(cell) - root, 12); }
   function degList() {
     return Object.keys(degs).filter(function (x) { return degs[x]; }).map(Number).sort(function (a, b) { return a - b; });
   }
@@ -347,25 +400,46 @@
     return found;
   }
   function save() {
-    try { localStorage.setItem('harmonicaMap', JSON.stringify({ harp: harp, pos: pos, degs: degList(), ob: showOb.checked })); } catch (e) {}
+    try { localStorage.setItem('harmonicaMap', JSON.stringify({ harp: harp, pos: pos, root: root, degs: degList(), ob: showOb.checked, od: showOd.checked, pr: $('presetsBox').open })); } catch (e) {}
   }
 
+  function visible(c) {
+    return (c.kind !== 'ob' || showOb.checked) && (c.kind !== 'od' || showOd.checked);
+  }
+  function cellHtml(c) {
+    if (!c) return '<div class="hcell empty"></div>';
+    var r = fromRoot(c), on = !!degs[r];
+    return '<button type="button" class="hcell k-' + c.kind + (on ? ' lit ' + degCls(r) : ' dim') + '" data-i="' + CELLS.indexOf(c) + '" title="' + c.lab + '">' +
+      '<b>' + rootNote(r) + '</b><small>' + (on ? KEYDEG[r] : '&nbsp;') + '</small></button>';
+  }
+  function find(hole, side, lvl) {
+    for (var j = 0; j < CELLS.length; j++) {
+      var c = CELLS[j];
+      if (c.hole === hole && c.side === side && c.lvl === lvl && visible(c)) return c;
+    }
+    return null;
+  }
+  // Бенды и овербенды стоят вплотную к своему ряду, без пустых строк между ними
   function renderHarp() {
-    var html = '';
-    ROWS.forEach(function (row) {
-      if (row === 'ob' && !showOb.checked) return;
-      html += '<div class="hrow hrow-' + row + '">';
-      for (var h = 1; h <= 10; h++) {
-        if (row === 'num') { html += '<div class="hnum"><span>' + h + '</span></div>'; continue; }
-        var c = null;
-        for (var j = 0; j < CELLS.length; j++) if (CELLS[j].hole === h && CELLS[j].row === row) { c = CELLS[j]; break; }
-        if (!c) { html += '<div class="hcell empty"></div>'; continue; }
-        var r = rel(c), on = !!degs[r];
-        html += '<button type="button" class="hcell k-' + c.kind + (on ? ' lit ' + degCls(r) : ' dim') + '" data-i="' + CELLS.indexOf(c) + '" title="' + c.lab + '">' +
-          '<b>' + keyNote(r) + '</b><small>' + (on ? KEYDEG[r] : '&nbsp;') + '</small></button>';
-      }
-      html += '</div>';
+    var up = 0, down = 0;
+    CELLS.forEach(function (c) {
+      if (!visible(c)) return;
+      if (c.side === 'up') up = Math.max(up, c.lvl);
+      if (c.side === 'down') down = Math.max(down, c.lvl);
     });
+    function row(cls, side, lvl) {
+      var h = '<div class="hrow ' + cls + '">';
+      for (var n = 1; n <= 10; n++) h += cellHtml(find(n, side, lvl));
+      return h + '</div>';
+    }
+    var html = '', l, n;
+    for (l = up; l >= 1; l--) html += row('hrow-up', 'up', l);
+    html += row('hrow-blow', 'blow', 0);
+    html += '<div class="hrow hrow-num">';
+    for (n = 1; n <= 10; n++) html += '<div class="hnum"><span>' + n + '</span></div>';
+    html += '</div>';
+    html += row('hrow-draw', 'draw', 0);
+    for (l = 1; l <= down; l++) html += row('hrow-down', 'down', l);
     $('harp').innerHTML = html;
   }
 
@@ -373,10 +447,10 @@
     var list = degList();
     if (!list.length) { hInfo.innerHTML = 'Выберите ступени или готовый набор.'; return; }
     var pr = activePreset();
-    var txt = (pr ? '<b>' + pr.textContent + '</b> от ' + keyNote(0) + ': ' : 'Подсвечено от тоники ' + keyNote(0) + ': ') +
-      list.map(function (r) { return KEYDEG[r] + ' (' + keyNote(r) + ')'; }).join(', ') + '.';
+    var txt = (pr ? '<b>' + pr.textContent + '</b> от ' + rootName() + ': ' : 'Подсвечено от ' + rootName() + ': ') +
+      list.map(function (r) { return KEYDEG[r] + ' (' + rootNote(r) + ')'; }).join(', ') + '.';
     var plain = {};
-    CELLS.forEach(function (c) { if (c.hole <= 6 && c.kind !== 'ob') plain[rel(c)] = true; });
+    CELLS.forEach(function (c) { if (c.hole <= 6 && c.kind !== 'ob' && c.kind !== 'od') plain[fromRoot(c)] = true; });
     var obOnly = list.filter(function (r) { return !plain[r]; });
     if (obOnly.length) txt += ' В отверстиях 1–6 только овербендом: ' + obOnly.map(function (r) { return KEYDEG[r]; }).join(', ') + '.';
     hInfo.innerHTML = txt;
@@ -385,13 +459,19 @@
   function renderControls() {
     harpSel.value = harp; posSel.value = pos;
     $('harpTonic').innerHTML = 'Тональность: <b>' + keyNote(0) + '</b>';
-    var dg = '';
+    var rc = '<span class="chips-label">Строим от ступени:</span>';
+    ROMAN.forEach(function (rn, idx) {
+      rc += '<button type="button" class="chip' + (idx === root ? ' on' : '') + '" data-root="' + idx + '">' + rn + ' <small>' + keyNote(idx) + '</small></button>';
+    });
+    $('rootChips').innerHTML = rc;
+    var dg = '<span class="chips-label">Ступени от ' + rootNote(0) + ':</span>';
     KEYDEG.forEach(function (d, idx) {
-      dg += '<button type="button" class="chip' + (degs[idx] ? ' on' : '') + '" data-deg="' + idx + '">' + d + ' <small>' + keyNote(idx) + '</small></button>';
+      dg += '<button type="button" class="chip' + (degs[idx] ? ' on' : '') + '" data-deg="' + idx + '">' + d + ' <small>' + rootNote(idx) + '</small></button>';
     });
     $('degChips').innerHTML = dg;
     var pr = activePreset();
     document.querySelectorAll('#presets .chip').forEach(function (btn) { btn.classList.toggle('on', btn === pr); });
+    $('presetName').textContent = pr ? '· ' + pr.textContent : '';
   }
 
   function renderAll() { renderControls(); renderHarp(); describe(); save(); }
@@ -399,6 +479,11 @@
   harpSel.onchange = function () { harp = +harpSel.value; renderAll(); };
   posSel.onchange = function () { pos = +posSel.value; renderAll(); };
   showOb.onchange = function () { renderHarp(); save(); };
+  showOd.onchange = function () { renderHarp(); save(); };
+  $('rootChips').onclick = function (e) {
+    var btn = e.target.closest('button[data-root]'); if (!btn) return;
+    root = +btn.dataset.root; renderAll();
+  };
   $('degChips').onclick = function (e) {
     var btn = e.target.closest('button[data-deg]'); if (!btn) return;
     var d = +btn.dataset.deg; degs[d] = !degs[d]; renderAll();
@@ -411,8 +496,10 @@
   };
   $('harp').onclick = function (e) {
     var btn = e.target.closest('button.hcell'); if (!btn) return;
-    var c = CELLS[+btn.dataset.i], r = rel(c);
-    hInfo.innerHTML = '<span class="h">' + c.lab + '</span> = <b>' + keyNote(r) + '</b>, от тоники ' + keyNote(0) + ' это ступень <b>' + KEYDEG[r] + '</b>.';
+    var c = CELLS[+btn.dataset.i], r = rel(c), fr = fromRoot(c);
+    var txt = '<span class="h">' + c.lab + '</span> = <b>' + rootNote(fr) + '</b>, от тоники ' + keyNote(0) + ' это ступень <b>' + KEYDEG[r] + '</b>';
+    if (root) txt += ', от ' + rootNote(0) + ' (' + ROMAN[root] + ') — <b>' + KEYDEG[fr] + '</b>';
+    hInfo.innerHTML = txt + '.';
   };
 
   renderAll();
