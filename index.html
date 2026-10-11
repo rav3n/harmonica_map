@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Карта гармошки</title>
+<style>
+  :root {
+    --bg: #faf8f4; --fg: #22201c; --muted: #6b665e; --card: #ffffff;
+    --line: #e4dfd5; --accent: #b4532a; --accent-soft: #f6e6dc;
+    --mine: #2f6f8f; --mine-soft: #e1eef4; --code: #f1ede5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #1b1a18; --fg: #ece8e1; --muted: #a39d93; --card: #24221f;
+      --line: #3a3732; --accent: #e8875a; --accent-soft: #3a2a21;
+      --mine: #7fbcd9; --mine-soft: #1f3039; --code: #2e2b27; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --bg: #1b1a18; --fg: #ece8e1; --muted: #a39d93; --card: #24221f;
+      --line: #3a3732; --accent: #e8875a; --accent-soft: #3a2a21;
+      --mine: #7fbcd9; --mine-soft: #1f3039; --code: #2e2b27; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 820px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 12px; }
+  h2 {
+    font-size: 1.35rem; margin: 44px 0 14px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent);
+  }
+  h3 { font-size: 1.1rem; margin: 28px 0 8px; color: var(--accent); }
+  p, li { margin: 6px 0; }
+  ul, ol { padding-left: 1.4em; }
+  .meta { color: var(--muted); margin: 0 0 4px; }
+  .legend {
+    margin: 18px 0 0; padding: 12px 14px; background: var(--mine-soft);
+    border-left: 4px solid var(--mine); border-radius: 6px; font-size: .95rem;
+  }
+  .mine {
+    display: inline-block; font-size: .78em; font-weight: 600; color: var(--mine);
+    background: var(--mine-soft); border-radius: 4px; padding: 0 6px; margin-right: 4px;
+    white-space: nowrap;
+  }
+  .note {
+    background: var(--mine-soft); border-left: 4px solid var(--mine);
+    border-radius: 6px; padding: 10px 14px; margin: 12px 0;
+  }
+  .key {
+    background: var(--accent-soft); border-left: 4px solid var(--accent);
+    border-radius: 6px; padding: 10px 14px; margin: 12px 0;
+  }
+  .table-wrap { overflow-x: auto; margin: 14px 0; }
+  table {
+    width: 100%; border-collapse: collapse; background: var(--card);
+    border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: .95rem;
+  }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { background: var(--code); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  tr.hl td { background: var(--accent-soft); font-weight: 600; }
+  .h {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .9em;
+    background: var(--code); padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+  }
+  .arp { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; padding: 0; list-style: none; }
+  .arp li {
+    margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 12px; flex: 1 1 140px;
+  }
+  .arp b { display: block; font-family: ui-monospace, Consolas, monospace; }
+  .arp span { color: var(--muted); font-size: .88rem; }
+  footer { margin-top: 48px; color: var(--muted); font-size: .88rem; }
+  :root { --r1: #b4532a; --r3: #2e7d4f; --r5: #2f6f8f; --r7: #7a4fa0; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --r1: #e8875a; --r3: #6cc28f; --r5: #7fbcd9; --r7: #b994e0; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --r1: #e8875a; --r3: #6cc28f; --r5: #7fbcd9; --r7: #b994e0; color-scheme: dark; }
+  .r1, .r3, .r5, .r7 { font-weight: 700; }
+  .r1 { color: var(--r1); background: color-mix(in srgb, var(--r1) 14%, transparent); }
+  .r3 { color: var(--r3); background: color-mix(in srgb, var(--r3) 14%, transparent); }
+  .r5 { color: var(--r5); background: color-mix(in srgb, var(--r5) 14%, transparent); }
+  .r7 { color: var(--r7); background: color-mix(in srgb, var(--r7) 14%, transparent); }
+  span.r1, span.r3, span.r5, span.r7 { padding: 0 6px; border-radius: 4px; }
+  .map td, .map th { text-align: center; padding: 6px 8px; white-space: nowrap; }
+  .map td:first-child, .map th:first-child { text-align: left; }
+  .map td.off { color: var(--muted); opacity: .45; }
+  .map th small { display: block; font-weight: 400; color: var(--muted); }
+  nav.toc { margin: 22px 0 0; padding: 12px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+  nav.toc ol { margin: 4px 0; }
+  nav.toc a, a { color: var(--accent); }
+  .ex { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 16px 0; }
+  .ex h4 { margin: 0 0 6px; font-size: 1.02rem; }
+  .ex .goal { color: var(--muted); font-size: .92rem; margin: 0 0 8px; }
+  .line { display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; margin: 10px 0; }
+  .line div { flex: 1 1 110px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; text-align: center; font-size: .9rem; }
+  .line div b { display: block; font-family: ui-monospace, Consolas, monospace; }
+  .line div i { display: block; font-style: normal; color: var(--muted); font-size: .8rem; }
+  .quiz { background: var(--card); border: 2px solid var(--accent); border-radius: 12px; padding: 16px; margin: 16px 0; }
+  .quiz .q { font-size: 1.1rem; margin: 0 0 12px; }
+  .quiz .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .quiz button {
+    font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--fg); cursor: pointer; min-width: 56px;
+  }
+  .quiz button:hover { border-color: var(--accent); }
+  .quiz .fb { margin: 12px 0 0; min-height: 1.6em; }
+  .quiz .ok { color: var(--r3); font-weight: 700; }
+  .quiz .bad { color: var(--r1); font-weight: 700; }
+  .quiz .bar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; color: var(--muted); font-size: .9rem; }
+  .quiz label { cursor: pointer; }
+  .keysel { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin: 12px 0; padding: 10px 14px;
+    background: var(--accent-soft); border-radius: 8px; }
+  .keysel label { cursor: pointer; }
+  .keysel small { color: var(--muted); }
+  :root { --harp-main: #e3d4f7; --harp-bend: #c8ecfb; --harp-bar: #474c50; --harp-ink: #1d1a22; --lit-ink: #fff; --rx: #8a7f6c; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --harp-main: #3b3150; --harp-bend: #1f3f4d; --harp-bar: #0f1012; --harp-ink: #f1edf7; --lit-ink: #111; --rx: #b7ab96; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --harp-main: #3b3150; --harp-bend: #1f3f4d; --harp-bar: #0f1012; --harp-ink: #f1edf7; --lit-ink: #111; --rx: #b7ab96; color-scheme: dark; }
+  .hctl { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 14px 0 10px; }
+  .hsel select { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); margin-left: 6px; }
+  .htonic { color: var(--muted); }
+  .hchk { cursor: pointer; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 4px 0 10px; }
+  .seg button { font: inherit; padding: 7px 14px; border: none; background: var(--card); color: var(--fg); cursor: pointer; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; align-items: center; }
+  .chips.small { font-size: .9rem; }
+  .chips-label { color: var(--muted); margin-right: 4px; }
+  .chip { font: inherit; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; }
+  .chip small { color: var(--muted); }
+  .chip.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+  .chip.r1c.on { border-color: var(--r1); color: var(--r1); }
+  .chip.r3c.on { border-color: var(--r3); color: var(--r3); }
+  .chip.r5c.on { border-color: var(--r5); color: var(--r5); }
+  .chip.r7c.on { border-color: var(--r7); color: var(--r7); }
+  .harp-wrap { overflow-x: auto; margin: 12px 0 6px; padding-bottom: 4px; }
+  .harp { min-width: 540px; display: flex; flex-direction: column; gap: 0; }
+  .hrow { display: grid; grid-template-columns: repeat(10, 1fr); }
+  .hrow-ob, .hrow-bb2, .hrow-bb1 { align-items: end; }
+  .hcell {
+    font: inherit; color: var(--harp-ink); border: 1.5px solid var(--fg); margin: 0 -0.75px -1.5px; padding: 6px 2px 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 54px; cursor: pointer;
+    transition: opacity .15s, transform .15s;
+  }
+  .hcell b { font-size: 1.25rem; font-weight: 500; line-height: 1.1; }
+  .hcell small { font-size: .72rem; font-weight: 700; line-height: 1.2; }
+  .hcell.empty { border: none; background: none; cursor: default; }
+  .hcell.k-main { background: var(--harp-main); }
+  .hcell.k-bend { background: var(--harp-bend); margin: 0 6px; border-radius: 2px; }
+  .hcell.k-ob { background: var(--harp-bend); margin: 0 6px 8px; border-style: dashed; border-radius: 2px; }
+  .hrow-blow .hcell:first-child { border-top-left-radius: 14px; }
+  .hrow-blow .hcell:last-child { border-top-right-radius: 14px; }
+  .hrow-draw .hcell:first-child { border-bottom-left-radius: 14px; }
+  .hrow-draw .hcell:last-child { border-bottom-right-radius: 14px; }
+  .hrow-db1 { margin-top: 10px; }
+  .hrow-bb1 { margin-bottom: 10px; }
+  .hcell.dim { opacity: .35; }
+  .hcell.lit { color: var(--lit-ink); transform: scale(1.0); }
+  .hcell.lit.r1 { background: var(--r1); }
+  .hcell.lit.r3 { background: var(--r3); }
+  .hcell.lit.r5 { background: var(--r5); }
+  .hcell.lit.r7 { background: var(--r7); }
+  .hcell.lit.rx { background: var(--rx); }
+  
+  .hcell:hover { outline: 2px solid var(--accent); outline-offset: -3px; }
+  .hnum { background: var(--harp-bar); padding: 6px 0; display: flex; justify-content: center; margin: 0 -1px; }
+  .hrow-num { background: var(--harp-bar); margin: 0 -18px; padding: 0 18px; border-radius: 3px; }
+  .hnum span { background: #000; color: #fff; font-size: .8rem; font-weight: 600; padding: 2px 7px; border-radius: 3px; }
+  .hinfo { min-height: 1.6em; margin: 6px 0 10px; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+  .presets { margin: 8px 0 4px; }
+  .presets .chips { margin: 4px 0; }
+  .mapdet { margin: 14px 0; }
+  .mapdet summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+  .lessons { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin: 16px 0; padding: 12px 16px;
+    background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 6px; }
+  .lessons a { font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+<h1>Карта гармошки</h1>
+<p class="meta">Диатоническая гармошка, строй Richter, 10 отверстий</p>
+<p>Выберите строй гармошки, позицию и ступени (или готовую гамму): на схеме подсветятся отверстия, в которых они звучат. Нажмите на любую ноту, чтобы увидеть, как её сыграть.</p>
+
+<div class="lessons">
+  <b>Уроки</b>
+  <a href="lessons/01-iii7-gussow.html">Урок 1 · 8-тактовый блюз с III7 · Адам Гуссоу →</a>
+</div>
+
+<div class="hctl">
+  <label class="hsel"><b>Гармошка</b> <select id="harpSel"></select></label>
+  <label class="hsel"><b>Позиция</b> <select id="posSel"></select></label>
+  <span class="htonic" id="harpTonic"></span>
+  <label class="hchk"><input type="checkbox" id="showOb"> показать овербенды</label>
+</div>
+
+<div class="chips" id="degChips"></div>
+<div class="presets" id="presets">
+  <div class="chips small"><span class="chips-label">Блюз и пентатоники:</span>
+    <button type="button" class="chip" data-preset="0,3,5,6,7,10">блюзовая гамма</button>
+    <button type="button" class="chip" data-preset="0,2,3,4,7,9">мажорный блюз</button>
+    <button type="button" class="chip" data-preset="0,3,5,7,10">минорная пентатоника</button>
+    <button type="button" class="chip" data-preset="0,2,4,7,9">мажорная пентатоника</button>
+    <button type="button" class="chip" data-preset="0,2,3,4,5,6,7,9,10">рок-н-ролльная</button>
+  </div>
+  <div class="chips small"><span class="chips-label">Мажор и минор:</span>
+    <button type="button" class="chip" data-preset="0,2,4,5,7,9,11">мажор (ионийский)</button>
+    <button type="button" class="chip" data-preset="0,2,3,5,7,8,10">натуральный минор (эолийский)</button>
+    <button type="button" class="chip" data-preset="0,2,3,5,7,8,11">гармонический минор</button>
+    <button type="button" class="chip" data-preset="0,2,3,5,7,9,11">мелодический минор</button>
+  </div>
+  <div class="chips small"><span class="chips-label">Лады мажора:</span>
+    <button type="button" class="chip" data-preset="0,2,3,5,7,9,10">дорийский</button>
+    <button type="button" class="chip" data-preset="0,1,3,5,7,8,10">фригийский</button>
+    <button type="button" class="chip" data-preset="0,2,4,6,7,9,11">лидийский</button>
+    <button type="button" class="chip" data-preset="0,2,4,5,7,9,10">миксолидийский</button>
+    <button type="button" class="chip" data-preset="0,1,3,5,6,8,10">локрийский</button>
+  </div>
+  <div class="chips small"><span class="chips-label">Аккорды от тоники:</span>
+    <button type="button" class="chip" data-preset="0,4,7">мажорное трезвучие</button>
+    <button type="button" class="chip" data-preset="0,3,7">минорное трезвучие</button>
+    <button type="button" class="chip" data-preset="0,4,7,10">доминантсептаккорд (7)</button>
+    <button type="button" class="chip" data-preset="0,3,7,10">минорный септаккорд (m7)</button>
+    <button type="button" class="chip" data-preset="0,3,6,9">уменьшённый (°7)</button>
+  </div>
+  <div class="chips small"><span class="chips-label">Бибоп:</span>
+    <button type="button" class="chip" data-preset="0,2,3,4,5,7,9,10">дорийский бибоп</button>
+    <button type="button" class="chip" data-preset="0,2,4,5,7,9,10,11">миксолидийский бибоп</button>
+  </div>
+  <div class="chips small"><span class="chips-label">Симметричные:</span>
+    <button type="button" class="chip" data-preset="0,2,4,6,8,10">целотонная</button>
+    <button type="button" class="chip" data-preset="0,1,3,4,6,7,9,10">уменьшённая полутон-тон</button>
+    <button type="button" class="chip" data-preset="0,2,3,5,6,8,9,11">уменьшённая тон-полутон</button>
+  </div>
+  <div class="chips small"><span class="chips-label">Экзотические:</span>
+    <button type="button" class="chip" data-preset="0,1,3,4,5,6,8,10">испанская 8-ступенная</button>
+    <button type="button" class="chip" data-preset="0,1,4,5,6,8,11">персидская</button>
+    <button type="button" class="chip" data-preset="0,1,4,5,7,8,11">цыганский мажор (византийская)</button>
+    <button type="button" class="chip" data-preset="0,2,3,6,7,8,11">цыганский минор (венгерская)</button>
+  </div>
+  <div class="chips small"><button type="button" class="chip" data-preset="">очистить</button></div>
+</div>
+
+<div class="harp-wrap"><div class="harp" id="harp"></div></div>
+<p class="hinfo" id="hInfo"></p>
+<p style="font-size:.9rem;color:var(--muted)">Сверху вниз: <b>овербенды и овердроу</b> (пунктир, если включены), <b>бенды на выдохе</b> (8–10), <b>выдох</b>, номера отверстий, <b>вдох</b>, <b>бенды на вдохе</b> (½, 1 и 1½ тона). Цвет: <span class="r1">1</span> тоника, <span class="r3">3 / ♭3</span> терции, <span class="r5">5 / ♭5</span> квинты, <span class="r7">7 / ♭7</span> септимы, серый — остальные ступени.</p>
+
+<h2>Ступени и интервалы</h2>
+<div class="table-wrap">
+<table>
+  <tr><th>Полутонов от тоники</th><th>Ступень</th><th>Название</th><th>Как звучит</th></tr>
+  <tr><td>0</td><td><span class="r1">1</span></td><td>прима (тоника)</td><td>опора, «дом»</td></tr>
+  <tr><td>1</td><td>♭2</td><td>малая секунда</td><td>резкое трение</td></tr>
+  <tr><td>2</td><td>2</td><td>большая секунда</td><td>шаг, проходящая нота</td></tr>
+  <tr><td>3</td><td><span class="r3">♭3</span></td><td>малая терция</td><td>грустная, «блюзовая»</td></tr>
+  <tr><td>4</td><td><span class="r3">3</span></td><td>большая терция</td><td>светлая, мажорная</td></tr>
+  <tr><td>5</td><td>4</td><td>кварта</td><td>подвешенная, хочет вниз на 3</td></tr>
+  <tr><td>6</td><td><span class="r5">♭5</span></td><td>тритон</td><td>острая блюзовая нота</td></tr>
+  <tr><td>7</td><td><span class="r5">5</span></td><td>квинта</td><td>устойчивая, «пустая»</td></tr>
+  <tr><td>8</td><td>♭6</td><td>малая секста</td><td>тёмная</td></tr>
+  <tr><td>9</td><td>6</td><td>большая секста</td><td>сладкая, «кантри»</td></tr>
+  <tr><td>10</td><td><span class="r7">♭7</span></td><td>малая септима</td><td>блюзовая, тянет дальше</td></tr>
+  <tr><td>11</td><td><span class="r7">7</span></td><td>большая септима</td><td>«джазовая», рвётся к 1</td></tr>
+</table>
+</div>
+</main>
+<script>
+(function () {
+  // ---------- Правописание нот ----------
+  var LET = ['C', 'D', 'E', 'F', 'G', 'A', 'B'], NAT = [0, 2, 4, 5, 7, 9, 11];
+  var ACC = { '-2': '𝄫', '-1': '♭', '0': '', '1': '♯', '2': '𝄪' };
+  function mod(n, m) { return ((n % m) + m) % m; }
+  function spell(li, pc) {
+    li = mod(li, 7);
+    var a = mod(pc - NAT[li], 12); if (a > 6) a -= 12;
+    return LET[li] + ACC[a];
+  }
+
+  // Строи гармошек: [название, высота, индекс буквы]
+  var HARPS = [['C', 0, 0], ['D♭', 1, 1], ['D', 2, 1], ['E♭', 3, 2], ['E', 4, 2], ['F', 5, 3],
+               ['F♯', 6, 3], ['G', 7, 4], ['A♭', 8, 5], ['A', 9, 5], ['B♭', 10, 6], ['B', 11, 6]];
+  // Позиции: [название, сдвиг тоники в полутонах, сдвиг буквы]
+  var POS = [['1-я (straight)', 0, 0], ['2-я (cross)', 7, 4], ['3-я (slant)', 2, 1],
+             ['4-я', 9, 5], ['5-я', 4, 2], ['12-я', 5, 3]];
+  var KEYDEG = ['1', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
+  var DEG_LI = [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6];
+
+  var harp = 0, pos = 1, showObDefault = false;
+  var degs = { 0: true, 3: true, 5: true, 6: true, 7: true, 10: true };
+  try {
+    var s = JSON.parse(localStorage.getItem('harmonicaMap') || 'null');
+    if (s) {
+      if (HARPS[s.harp]) harp = s.harp;
+      if (POS[s.pos]) pos = s.pos;
+      if (s.degs) { degs = {}; s.degs.forEach(function (d) { degs[d] = true; }); }
+      showObDefault = !!s.ob;
+    }
+  } catch (e) {}
+
+  function tonicPc() { return mod(HARPS[harp][1] + POS[pos][1], 12); }
+  function tonicLi() { return mod(HARPS[harp][2] + POS[pos][2], 7); }
+  function keyNote(rel) { return spell(tonicLi() + DEG_LI[mod(rel, 12)], tonicPc() + rel); }
+  function degCls(rel) {
+    return { 0: 'r1', 3: 'r3', 4: 'r3', 6: 'r5', 7: 'r5', 10: 'r7', 11: 'r7' }[rel] || 'rx';
+  }
+
+  // ---------- Раскладка Richter (полутона от строя гармошки) ----------
+  var BLOW = [0, 4, 7, 12, 16, 19, 24, 28, 31, 36];
+  var DRAW = [2, 7, 11, 14, 17, 21, 23, 26, 29, 33];
+  var BENDTXT = ['', '↓½', '↓1', '↓1½'];
+  var CELLS = [];
+  for (var i = 0; i < 10; i++) {
+    var n = i + 1, b = BLOW[i], d = DRAW[i], k;
+    CELLS.push({ hole: n, row: 'blow', semi: b, lab: n + ' blow', kind: 'main' });
+    CELLS.push({ hole: n, row: 'draw', semi: d, lab: n + ' draw', kind: 'main' });
+    if (d > b) {
+      for (k = 1; k <= d - b - 1; k++) CELLS.push({ hole: n, row: 'db' + k, semi: d - k, lab: n + ' draw ' + BENDTXT[k], kind: 'bend' });
+      if (n === 1 || n >= 4) CELLS.push({ hole: n, row: 'ob', semi: d + 1, lab: n + ' overblow', kind: 'ob' });
+    } else {
+      for (k = 1; k <= b - d - 1; k++) CELLS.push({ hole: n, row: 'bb' + k, semi: b - k, lab: n + ' blow ' + BENDTXT[k], kind: 'bend' });
+      if (n !== 8) CELLS.push({ hole: n, row: 'ob', semi: b + 1, lab: n + ' overdraw', kind: 'ob' });
+    }
+  }
+  var ROWS = ['ob', 'bb2', 'bb1', 'blow', 'num', 'draw', 'db1', 'db2', 'db3'];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var harpSel = $('harpSel'), posSel = $('posSel'), showOb = $('showOb'), hInfo = $('hInfo');
+  showOb.checked = showObDefault;
+
+  HARPS.forEach(function (h, idx) {
+    var o = document.createElement('option'); o.value = idx; o.textContent = h[0]; harpSel.appendChild(o);
+  });
+  POS.forEach(function (p, idx) {
+    var o = document.createElement('option'); o.value = idx; o.textContent = p[0]; posSel.appendChild(o);
+  });
+
+  function rel(cell) { return mod(cell.semi - POS[pos][1], 12); }
+  function degList() {
+    return Object.keys(degs).filter(function (x) { return degs[x]; }).map(Number).sort(function (a, b) { return a - b; });
+  }
+  function activePreset() {
+    var cur = degList().join(','), found = null;
+    if (!cur) return null;
+    document.querySelectorAll('#presets .chip').forEach(function (btn) { if (btn.dataset.preset === cur) found = btn; });
+    return found;
+  }
+  function save() {
+    try { localStorage.setItem('harmonicaMap', JSON.stringify({ harp: harp, pos: pos, degs: degList(), ob: showOb.checked })); } catch (e) {}
+  }
+
+  function renderHarp() {
+    var html = '';
+    ROWS.forEach(function (row) {
+      if (row === 'ob' && !showOb.checked) return;
+      html += '<div class="hrow hrow-' + row + '">';
+      for (var h = 1; h <= 10; h++) {
+        if (row === 'num') { html += '<div class="hnum"><span>' + h + '</span></div>'; continue; }
+        var c = null;
+        for (var j = 0; j < CELLS.length; j++) if (CELLS[j].hole === h && CELLS[j].row === row) { c = CELLS[j]; break; }
+        if (!c) { html += '<div class="hcell empty"></div>'; continue; }
+        var r = rel(c), on = !!degs[r];
+        html += '<button type="button" class="hcell k-' + c.kind + (on ? ' lit ' + degCls(r) : ' dim') + '" data-i="' + CELLS.indexOf(c) + '" title="' + c.lab + '">' +
+          '<b>' + keyNote(r) + '</b><small>' + (on ? KEYDEG[r] : '&nbsp;') + '</small></button>';
+      }
+      html += '</div>';
+    });
+    $('harp').innerHTML = html;
+  }
+
+  function describe() {
+    var list = degList();
+    if (!list.length) { hInfo.innerHTML = 'Выберите ступени или готовый набор.'; return; }
+    var pr = activePreset();
+    var txt = (pr ? '<b>' + pr.textContent + '</b> от ' + keyNote(0) + ': ' : 'Подсвечено от тоники ' + keyNote(0) + ': ') +
+      list.map(function (r) { return KEYDEG[r] + ' (' + keyNote(r) + ')'; }).join(', ') + '.';
+    var plain = {};
+    CELLS.forEach(function (c) { if (c.hole <= 6 && c.kind !== 'ob') plain[rel(c)] = true; });
+    var obOnly = list.filter(function (r) { return !plain[r]; });
+    if (obOnly.length) txt += ' В отверстиях 1–6 только овербендом: ' + obOnly.map(function (r) { return KEYDEG[r]; }).join(', ') + '.';
+    hInfo.innerHTML = txt;
+  }
+
+  function renderControls() {
+    harpSel.value = harp; posSel.value = pos;
+    $('harpTonic').innerHTML = 'Тональность: <b>' + keyNote(0) + '</b>';
+    var dg = '';
+    KEYDEG.forEach(function (d, idx) {
+      dg += '<button type="button" class="chip' + (degs[idx] ? ' on' : '') + '" data-deg="' + idx + '">' + d + ' <small>' + keyNote(idx) + '</small></button>';
+    });
+    $('degChips').innerHTML = dg;
+    var pr = activePreset();
+    document.querySelectorAll('#presets .chip').forEach(function (btn) { btn.classList.toggle('on', btn === pr); });
+  }
+
+  function renderAll() { renderControls(); renderHarp(); describe(); save(); }
+
+  harpSel.onchange = function () { harp = +harpSel.value; renderAll(); };
+  posSel.onchange = function () { pos = +posSel.value; renderAll(); };
+  showOb.onchange = function () { renderHarp(); save(); };
+  $('degChips').onclick = function (e) {
+    var btn = e.target.closest('button[data-deg]'); if (!btn) return;
+    var d = +btn.dataset.deg; degs[d] = !degs[d]; renderAll();
+  };
+  $('presets').onclick = function (e) {
+    var btn = e.target.closest('button[data-preset]'); if (!btn) return;
+    degs = {};
+    if (btn.dataset.preset) btn.dataset.preset.split(',').forEach(function (x) { degs[+x] = true; });
+    renderAll();
+  };
+  $('harp').onclick = function (e) {
+    var btn = e.target.closest('button.hcell'); if (!btn) return;
+    var c = CELLS[+btn.dataset.i], r = rel(c);
+    hInfo.innerHTML = '<span class="h">' + c.lab + '</span> = <b>' + keyNote(r) + '</b>, от тоники ' + keyNote(0) + ' это ступень <b>' + KEYDEG[r] + '</b>.';
+  };
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

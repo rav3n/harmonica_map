@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Урок 1 · III7 · Гуссоу</title>
+<style>
+  :root {
+    --bg: #faf8f4; --fg: #22201c; --muted: #6b665e; --card: #ffffff;
+    --line: #e4dfd5; --accent: #b4532a; --accent-soft: #f6e6dc;
+    --mine: #2f6f8f; --mine-soft: #e1eef4; --code: #f1ede5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #1b1a18; --fg: #ece8e1; --muted: #a39d93; --card: #24221f;
+      --line: #3a3732; --accent: #e8875a; --accent-soft: #3a2a21;
+      --mine: #7fbcd9; --mine-soft: #1f3039; --code: #2e2b27; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --bg: #1b1a18; --fg: #ece8e1; --muted: #a39d93; --card: #24221f;
+      --line: #3a3732; --accent: #e8875a; --accent-soft: #3a2a21;
+      --mine: #7fbcd9; --mine-soft: #1f3039; --code: #2e2b27; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 820px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 12px; }
+  h2 {
+    font-size: 1.35rem; margin: 44px 0 14px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent);
+  }
+  h3 { font-size: 1.1rem; margin: 28px 0 8px; color: var(--accent); }
+  p, li { margin: 6px 0; }
+  ul, ol { padding-left: 1.4em; }
+  .meta { color: var(--muted); margin: 0 0 4px; }
+  .legend {
+    margin: 18px 0 0; padding: 12px 14px; background: var(--mine-soft);
+    border-left: 4px solid var(--mine); border-radius: 6px; font-size: .95rem;
+  }
+  .mine {
+    display: inline-block; font-size: .78em; font-weight: 600; color: var(--mine);
+    background: var(--mine-soft); border-radius: 4px; padding: 0 6px; margin-right: 4px;
+    white-space: nowrap;
+  }
+  .note {
+    background: var(--mine-soft); border-left: 4px solid var(--mine);
+    border-radius: 6px; padding: 10px 14px; margin: 12px 0;
+  }
+  .key {
+    background: var(--accent-soft); border-left: 4px solid var(--accent);
+    border-radius: 6px; padding: 10px 14px; margin: 12px 0;
+  }
+  .table-wrap { overflow-x: auto; margin: 14px 0; }
+  table {
+    width: 100%; border-collapse: collapse; background: var(--card);
+    border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: .95rem;
+  }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { background: var(--code); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  tr.hl td { background: var(--accent-soft); font-weight: 600; }
+  .h {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .9em;
+    background: var(--code); padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+  }
+  .arp { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; padding: 0; list-style: none; }
+  .arp li {
+    margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 12px; flex: 1 1 140px;
+  }
+  .arp b { display: block; font-family: ui-monospace, Consolas, monospace; }
+  .arp span { color: var(--muted); font-size: .88rem; }
+  footer { margin-top: 48px; color: var(--muted); font-size: .88rem; }
+  :root { --r1: #b4532a; --r3: #2e7d4f; --r5: #2f6f8f; --r7: #7a4fa0; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --r1: #e8875a; --r3: #6cc28f; --r5: #7fbcd9; --r7: #b994e0; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --r1: #e8875a; --r3: #6cc28f; --r5: #7fbcd9; --r7: #b994e0; color-scheme: dark; }
+  .r1, .r3, .r5, .r7 { font-weight: 700; }
+  .r1 { color: var(--r1); background: color-mix(in srgb, var(--r1) 14%, transparent); }
+  .r3 { color: var(--r3); background: color-mix(in srgb, var(--r3) 14%, transparent); }
+  .r5 { color: var(--r5); background: color-mix(in srgb, var(--r5) 14%, transparent); }
+  .r7 { color: var(--r7); background: color-mix(in srgb, var(--r7) 14%, transparent); }
+  span.r1, span.r3, span.r5, span.r7 { padding: 0 6px; border-radius: 4px; }
+  .map td, .map th { text-align: center; padding: 6px 8px; white-space: nowrap; }
+  .map td:first-child, .map th:first-child { text-align: left; }
+  .map td.off { color: var(--muted); opacity: .45; }
+  .map th small { display: block; font-weight: 400; color: var(--muted); }
+  nav.toc { margin: 22px 0 0; padding: 12px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+  nav.toc ol { margin: 4px 0; }
+  nav.toc a, a { color: var(--accent); }
+  .ex { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 16px 0; }
+  .ex h4 { margin: 0 0 6px; font-size: 1.02rem; }
+  .ex .goal { color: var(--muted); font-size: .92rem; margin: 0 0 8px; }
+  .line { display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; margin: 10px 0; }
+  .line div { flex: 1 1 110px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; text-align: center; font-size: .9rem; }
+  .line div b { display: block; font-family: ui-monospace, Consolas, monospace; }
+  .line div i { display: block; font-style: normal; color: var(--muted); font-size: .8rem; }
+  .quiz { background: var(--card); border: 2px solid var(--accent); border-radius: 12px; padding: 16px; margin: 16px 0; }
+  .quiz .q { font-size: 1.1rem; margin: 0 0 12px; }
+  .quiz .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .quiz button {
+    font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--fg); cursor: pointer; min-width: 56px;
+  }
+  .quiz button:hover { border-color: var(--accent); }
+  .quiz .fb { margin: 12px 0 0; min-height: 1.6em; }
+  .quiz .ok { color: var(--r3); font-weight: 700; }
+  .quiz .bad { color: var(--r1); font-weight: 700; }
+  .quiz .bar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; color: var(--muted); font-size: .9rem; }
+  .quiz label { cursor: pointer; }
+  .quiz select { font: inherit; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  .keysel { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin: 12px 0; padding: 10px 14px;
+    background: var(--accent-soft); border-radius: 8px; }
+  .keysel label { cursor: pointer; }
+  .keysel small { color: var(--muted); }
+  :root { --harp-main: #e3d4f7; --harp-bend: #c8ecfb; --harp-bar: #474c50; --harp-ink: #1d1a22; --lit-ink: #fff; --rx: #8a7f6c; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --harp-main: #3b3150; --harp-bend: #1f3f4d; --harp-bar: #0f1012; --harp-ink: #f1edf7; --lit-ink: #111; --rx: #b7ab96; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --harp-main: #3b3150; --harp-bend: #1f3f4d; --harp-bar: #0f1012; --harp-ink: #f1edf7; --lit-ink: #111; --rx: #b7ab96; color-scheme: dark; }
+  .hctl { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 14px 0 10px; }
+  .hsel select { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); margin-left: 6px; }
+  .htonic { color: var(--muted); }
+  .hchk { cursor: pointer; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 4px 0 10px; }
+  .seg button { font: inherit; padding: 7px 14px; border: none; background: var(--card); color: var(--fg); cursor: pointer; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; align-items: center; }
+  .chips.small { font-size: .9rem; }
+  .chips-label { color: var(--muted); margin-right: 4px; }
+  .chip { font: inherit; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; }
+  .chip small { color: var(--muted); }
+  .chip.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+  .chip.r1c.on { border-color: var(--r1); color: var(--r1); }
+  .chip.r3c.on { border-color: var(--r3); color: var(--r3); }
+  .chip.r5c.on { border-color: var(--r5); color: var(--r5); }
+  .chip.r7c.on { border-color: var(--r7); color: var(--r7); }
+  .harp-wrap { overflow-x: auto; margin: 12px 0 6px; padding-bottom: 4px; }
+  .harp { min-width: 540px; display: flex; flex-direction: column; gap: 0; }
+  .hrow { display: grid; grid-template-columns: repeat(10, 1fr); }
+  .hrow-ob, .hrow-bb2, .hrow-bb1 { align-items: end; }
+  .hcell {
+    font: inherit; color: var(--harp-ink); border: 1.5px solid var(--fg); margin: 0 -0.75px -1.5px; padding: 6px 2px 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 54px; cursor: pointer;
+    transition: opacity .15s, transform .15s;
+  }
+  .hcell b { font-size: 1.25rem; font-weight: 500; line-height: 1.1; }
+  .hcell small { font-size: .72rem; font-weight: 700; line-height: 1.2; }
+  .hcell.empty { border: none; background: none; cursor: default; }
+  .hcell.k-main { background: var(--harp-main); }
+  .hcell.k-bend { background: var(--harp-bend); margin: 0 6px; border-radius: 2px; }
+  .hcell.k-ob { background: var(--harp-bend); margin: 0 6px 8px; border-style: dashed; border-radius: 2px; }
+  .hrow-blow .hcell:first-child { border-top-left-radius: 14px; }
+  .hrow-blow .hcell:last-child { border-top-right-radius: 14px; }
+  .hrow-draw .hcell:first-child { border-bottom-left-radius: 14px; }
+  .hrow-draw .hcell:last-child { border-bottom-right-radius: 14px; }
+  .hrow-db1 { margin-top: 10px; }
+  .hrow-bb1 { margin-bottom: 10px; }
+  .hcell.dim { opacity: .35; }
+  .hcell.lit { color: var(--lit-ink); transform: scale(1.0); }
+  .hcell.lit.r1 { background: var(--r1); }
+  .hcell.lit.r3 { background: var(--r3); }
+  .hcell.lit.r5 { background: var(--r5); }
+  .hcell.lit.r7 { background: var(--r7); }
+  .hcell.lit.rx { background: var(--rx); }
+  
+  .hcell:hover { outline: 2px solid var(--accent); outline-offset: -3px; }
+  .hnum { background: var(--harp-bar); padding: 6px 0; display: flex; justify-content: center; margin: 0 -1px; }
+  .hrow-num { background: var(--harp-bar); margin: 0 -18px; padding: 0 18px; border-radius: 3px; }
+  .hnum span { background: #000; color: #fff; font-size: .8rem; font-weight: 600; padding: 2px 7px; border-radius: 3px; }
+  .hinfo { min-height: 1.6em; margin: 6px 0 10px; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+  .presets { margin: 8px 0 4px; }
+  .presets .chips { margin: 4px 0; }
+  .mapdet { margin: 14px 0; }
+  .mapdet summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+<p class="meta"><a href="../index.html">← Карта гармошки</a></p>
+
+<h1>8-тактовый блюз с аккордом III7 — конспект урока</h1>
+<p class="meta"><b>Источник:</b> Adam Gussow, Modern Blues Harmonica (аудио 12:35)</p>
+<p class="meta"><b>Гармошка в уроке:</b> B♭, вторая позиция (cross harp), то есть играет в тональности <b>F</b></p>
+<div class="legend">Пометка <span class="mine">от меня</span> значит, что это моё дополнение, а не слова из урока. Всё остальное — пересказ того, что он говорит.</div>
+
+<nav class="toc"><b>Содержание</b>
+<ol>
+  <li><a href="#prog">Что за прогрессия</a></li>
+  <li><a href="#chords">Что играть на каждом аккорде</a></li>
+  <li><a href="#tech">Техника</a></li>
+  <li><a href="#basics">Основы: интервалы, ступени, аккорды</a></li>
+  <li><a href="#map">Аккорды урока на гармошке</a></li>
+  <li><a href="#ex">Упражнения и тренажёр</a></li>
+  <li><a href="#plan">Как заниматься</a></li>
+</ol>
+</nav>
+
+<h2 id="prog">1. Что за прогрессия</h2>
+<ul>
+  <li>Это 8-тактовый блюз, но по звучанию он ближе к госпелу. Сам Гуссоу называет его «gospel-y» и признаётся, что у него особое отношение к этой прогрессии.</li>
+  <li>Песни на ней: <b>«Georgia on My Mind»</b> (медленно), <b>«Trouble in Mind»</b>, <b>«Stagger Lee»</b> (в быстром темпе).</li>
+  <li>Главная особенность — аккорд <b>III7</b> во втором такте. По словам Гуссоу, у него «очень характерный вкус».</li>
+</ul>
+
+<h3>Аккорды в том порядке, в каком он их описывает</h3>
+<div class="table-wrap">
+<table>
+  <tr><th>Такт</th><th>Ступени</th><th>В C (его пример)</th><th>В F (B♭-гармошка)</th></tr>
+  <tr><td>1</td><td>I</td><td>C</td><td>F</td></tr>
+  <tr class="hl"><td>2</td><td>III7</td><td>E7</td><td>A7</td></tr>
+  <tr><td>3</td><td>IV (на полтона выше)</td><td>F</td><td>B♭</td></tr>
+  <tr><td>4</td><td>уменьшённый (♭5dim / Idim / ♭3dim) <b>или</b> минорная IV</td><td>F♯°7 или Fm</td><td>B°7 или B♭m</td></tr>
+  <tr><td>каданс</td><td>по 2 доли: <b>I – VI7 – II7 – V</b></td><td>C – A7 – D7 – G</td><td>F – D7 – G7 – C</td></tr>
+</table>
+</div>
+<ul>
+  <li>В четвёртом такте «происходит что-то странное». Можно взять уменьшённый аккорд, можно минорную IV. Гуссоу больше нравится уменьшённый.</li>
+  <li>Каданс в конце он называет классическим кантри-блюзовым, рэгтаймовым оборотом, «pause for the cause».</li>
+</ul>
+<div class="note"><span class="mine">от меня</span> Гуссоу проговаривает только первые 4 такта и каданс. Где именно стоят такты 5–8, в уроке не сказано. В песнях этого типа чаще всего так: <b>| I | VI7 | II7 V7 | I (V7) |</b>. Сверяйтесь с конкретной песней.</div>
+
+<h3>Почему все уменьшённые аккорды — один и тот же</h3>
+<p>Уменьшённый септаккорд состоит из звуков, которые идут через малую терцию. Поэтому ♭5dim, Idim и ♭3dim — это один набор нот, просто с разных звуков. Поэтому Гуссоу и говорит: «they're all the same chord».</p>
+<p>Гуссоу считает ступени от тоники, поэтому ниже раскладка в обеих тональностях.</p>
+
+<p><b>В F (B♭-гармошка, 2-я позиция)</b></p>
+<div class="table-wrap">
+<table>
+  <tr><th>Название</th><th>Аккорд</th><th>Ноты</th></tr>
+  <tr><td>♭5dim</td><td><b>B°7</b> (= C♭°7)</td><td>B – D – F – A♭</td></tr>
+  <tr><td>Idim</td><td><b>F°7</b></td><td>F – A♭ – B(C♭) – D</td></tr>
+  <tr><td>♭3dim</td><td><b>A♭°7</b></td><td>A♭ – B(C♭) – D – F</td></tr>
+  <tr><td><i>4-й вариант</i></td><td><b>D°7</b></td><td>D – F – A♭ – B</td></tr>
+</table>
+</div>
+<p>Во всех четырёх одни и те же ноты: <b>F, A♭, B, D</b>. Каждая следующая на малую терцию выше предыдущей, и после четырёх шагов звук возвращается в исходную октаву. Поэтому любая из четырёх нот может быть «основным тоном».</p>
+
+<p><b>Те же ноты на гармошке</b> (по арпеджио из урока):</p>
+<div class="table-wrap">
+<table>
+  <tr><th>Отверстие</th><th>Нота (B♭-гармошка)</th><th>Роль от тоники F</th></tr>
+  <tr><td><span class="h">2 draw</span></td><td>F</td><td>тоника</td></tr>
+  <tr><td><span class="h">3 draw ↓½</span></td><td>A♭</td><td>♭3, блюзовая терция</td></tr>
+  <tr><td><span class="h">4 draw ↓½</span></td><td>B (C♭)</td><td>♭5</td></tr>
+  <tr><td><span class="h">5 blow</span></td><td>D</td><td>6 (уменьшённая септима)</td></tr>
+  <tr><td><span class="h">6 blow</span></td><td>F</td><td>тоника</td></tr>
+  <tr><td><span class="h">6 overblow</span></td><td>A♭</td><td>♭3 октавой выше</td></tr>
+</table>
+</div>
+
+<p><b>В C</b> (как в его примере «C → E7»)</p>
+<div class="table-wrap">
+<table>
+  <tr><th>Название</th><th>Аккорд</th><th>Ноты</th></tr>
+  <tr><td>♭5dim</td><td><b>G♭°7 / F♯°7</b></td><td>F♯ – A – C – E♭</td></tr>
+  <tr><td>Idim</td><td><b>C°7</b></td><td>C – E♭ – G♭ – A</td></tr>
+  <tr><td>♭3dim</td><td><b>E♭°7</b></td><td>E♭ – G♭ – A – C</td></tr>
+</table>
+</div>
+<p>Здесь общие ноты — <b>C, E♭, F♯/G♭, A</b>.</p>
+
+<div class="note"><span class="mine">от меня</span> <b>Зачем он нужен в 4-м такте.</b> Вариант с ♭5 (♯IV°7) — проходящий аккорд между IV и I: бас идёт по полутонам B♭ → B → C, а верхние голоса тянутся к нотам тоники. Этот сдвиг на полтона в басу и даёт то «что-то странное», о котором говорит Гуссоу.</div>
+
+<h2 id="chords">2. Что играть на каждом аккорде (2-я позиция)</h2>
+<p>Номера отверстий даны для любой диатонической гармошки во 2-й позиции.</p>
+
+<h3>I</h3>
+<p>Гуссоу отдельно ничего не разбирает. <span class="mine">от меня</span> Основные звуки — <span class="h">2 draw</span>, <span class="h">3 blow</span>, <span class="h">6 blow</span> (тоника).</p>
+
+<h3>I → III7: начальная фраза</h3>
+<ul>
+  <li>Начальная фраза — просто переход <span class="h">3 draw</span> → <span class="h">4 draw</span>.</li>
+  <li><span class="h">3 draw</span> — <b>основной тон III7</b>.</li>
+  <li><span class="h">3 draw, бенд на тон</span> — <b>септима III7</b>.</li>
+  <li>Совет Гуссоу: держать в голове эти опорные ноты аккорда, тогда фразы сами ложатся на гармонию.</li>
+</ul>
+<div class="note"><span class="mine">от меня</span> Терция A7 — это C♯, а в F это ♯5, чужая для блюзовой гаммы нота. Получить её можно только овербендом (<span class="h">4 overblow</span>), так что 3 draw и 3 draw с бендом — практичный выбор.</div>
+
+<h3>IV</h3>
+<ul>
+  <li>Простой мажорный аккорд: <span class="h">4 blow</span> <span class="h">5 blow</span> <span class="h">6 blow</span> — прима, терция и квинта IV.</li>
+  <li>Если умеете овербенды, тут хорошо звучит <span class="h">6 overblow</span> (см. ниже).</li>
+</ul>
+
+<h3>Уменьшённый аккорд (4-й такт) — главная «фишка» урока</h3>
+<p>Арпеджио уменьшённого аккорда:</p>
+<ol class="arp">
+  <li><b>2 draw</b><span>тоника</span></li>
+  <li><b>3 draw ↓½</b><span>блюзовая (малая) терция</span></li>
+  <li><b>4 draw ↓½</b><span>уменьшённая квинта</span></li>
+  <li><b>5 blow</b><span>большая секста = ум. септима</span></li>
+  <li><b>6 blow</b><span>тоника октавой выше</span></li>
+</ol>
+<ul>
+  <li>Гуссоу считает самым классным здесь сочетание малой терции (<span class="h">3 draw ↓½</span>) и большой сексты (<span class="h">5 blow</span>).</li>
+  <li><span class="h">6 overblow</span> тоже входит в этот уменьшённый аккорд. Поэтому в разборе он и звучал так хорошо.</li>
+  <li>По его словам, мало кто привык играть такое арпеджио, но его стоит выучить.</li>
+</ul>
+
+<h3>Каданс I – VI7 – II7 – V</h3>
+<div class="key">Для Гуссоу одним из «великих открытий» стало то, что у <span class="h">6 draw ↓½</span> есть функция: это терция VI7. Через неё удобно переходить с I на VI7.</div>
+<ul>
+  <li><b>Трезвучие VI7 в верхнем регистре:</b> <span class="h">5 blow</span> (прима) → <span class="h">6 draw ↓½</span> (большая терция) → <span class="h">7 draw</span> (квинта).</li>
+  <li><b>То же в нижнем регистре:</b> <span class="h">2 blow</span> (прима) и <span class="h">3 draw ↓1½</span>, бенд до упора (большая терция).</li>
+  <li>Он признаёт, что это ноты, которые «средний блюзовый гармонист» обычно не берёт. Но именно в этом кадансе они к месту.</li>
+  <li>По его словам, ближе к джазу он не заходит.</li>
+</ul>
+<div class="note"><span class="mine">от меня</span> Септима VI7 — это <span class="h">4 draw</span> или <span class="h">1 draw</span>. Звуки для II7 и V7:
+  <ul>
+    <li><b>II7:</b> <span class="h">6 draw</span> / <span class="h">3 draw ↓1</span> (прима), <span class="h">4 draw ↓½</span> (терция), <span class="h">5 blow</span> / <span class="h">2 blow</span> (квинта), <span class="h">6 blow</span> / <span class="h">3 blow</span> (септима)</li>
+    <li><b>V7:</b> <span class="h">4 draw</span> / <span class="h">1 draw</span> (прима), <span class="h">2 draw ↓½</span> / <span class="h">5 overblow</span> (терция), <span class="h">6 draw</span> (квинта), <span class="h">4 blow</span> / <span class="h">1 blow</span> (септима)</li>
+  </ul>
+  II7 и V7 Гуссоу оставил на самостоятельную работу («мне нужно дать вам разобраться самим»).
+</div>
+
+<h2 id="tech">3. Техника: на что обратить внимание</h2>
+<ul>
+  <li><b>Овербенды.</b> Гуссоу говорит, что эта прогрессия — хорошая причина их освоить: <span class="h">6 overblow</span> ложится и на IV, и на уменьшённый аккорд. Если овербендов нет, можно обойтись опорными нотами, которые перечислены выше.</li>
+  <li><b>Точные бенды.</b> Без них не сыграть ни одну из характерных нот урока:
+    <ul>
+      <li><span class="h">3 draw</span> с бендом на полтона, на тон и на полтора тона;</li>
+      <li><span class="h">4 draw ↓½</span>;</li>
+      <li><span class="h">6 draw ↓½</span>.</li>
+    </ul>
+  </li>
+  <li><b>Думать аккордами.</b> Главный метод урока: знать, какая нота отверстия — прима, терция или септима текущего аккорда, и вести мелодию по этим нотам. Как в этом разобраться с нуля — в разделах <a href="#basics">4</a>–<a href="#ex">6</a>.</li>
+  <li><b>Верхняя октава.</b> В конце Гуссоу показывает, что те же идеи можно играть выше.</li>
+</ul>
+
+<h2 id="basics">4. Основы: интервалы, ступени, аккорды <span class="mine">от меня</span></h2>
+
+<h3>Полутон и интервал</h3>
+<ul>
+  <li><b>Полутон</b> — самый маленький шаг между нотами. На гармошке бенд на полтона (↓½) опускает ноту ровно на 1 полутон, бенд на тон (↓1) — на 2 полутона.</li>
+  <li><b>Интервал</b> — расстояние между двумя нотами, измеренное в полутонах. Каждое расстояние имеет своё название и свой характер звучания.</li>
+  <li><b>Ступень</b> — тот же интервал, но отсчитанный от главной ноты: от тоники тональности или от основного тона аккорда. Цифры 1, 3, 5, ♭7 в этом конспекте — это ступени.</li>
+</ul>
+
+<p>Все интервалы, отсчитанные от тоники F. Это 2-я позиция на B♭-гармошке, но роли отверстий одинаковы на гармошке любого строя во 2-й позиции.</p>
+<div class="table-wrap">
+<table>
+  <tr><th>Полутонов</th><th>Ступень</th><th>Название</th><th>Как звучит</th><th>Где на гармошке</th></tr>
+  <tr><td>0</td><td><span class="r1">1</span></td><td>прима (тоника)</td><td>опора, «дом»</td><td><span class="h">2 draw</span> <span class="h">3 blow</span> <span class="h">6 blow</span> <span class="h">9 blow</span></td></tr>
+  <tr><td>1</td><td>♭2</td><td>малая секунда</td><td>резкое трение</td><td><span class="h">3 draw ↓1½</span> <span class="h">6 draw ↓½</span></td></tr>
+  <tr><td>2</td><td>2</td><td>большая секунда</td><td>шаг, проходящая нота</td><td><span class="h">3 draw ↓1</span> <span class="h">6 draw</span></td></tr>
+  <tr><td>3</td><td><span class="r3">♭3</span></td><td>малая терция</td><td>грустная, «блюзовая»</td><td><span class="h">3 draw ↓½</span> <span class="h">6 overblow</span></td></tr>
+  <tr><td>4</td><td><span class="r3">3</span></td><td>большая терция</td><td>светлая, мажорная</td><td><span class="h">3 draw</span> <span class="h">7 draw</span></td></tr>
+  <tr><td>5</td><td>4</td><td>кварта</td><td>подвешенная, хочет вниз на 3</td><td><span class="h">1 blow</span> <span class="h">4 blow</span> <span class="h">7 blow</span></td></tr>
+  <tr><td>6</td><td><span class="r5">♭5</span></td><td>тритон</td><td>острая блюзовая нота</td><td><span class="h">1 draw ↓½</span> <span class="h">4 draw ↓½</span></td></tr>
+  <tr><td>7</td><td><span class="r5">5</span></td><td>квинта</td><td>устойчивая, «пустая»</td><td><span class="h">1 draw</span> <span class="h">4 draw</span> <span class="h">8 draw</span></td></tr>
+  <tr><td>8</td><td>♭6</td><td>малая секста</td><td>тёмная</td><td><span class="h">4 overblow</span></td></tr>
+  <tr><td>9</td><td>6</td><td>большая секста</td><td>сладкая, «кантри»</td><td><span class="h">2 blow</span> <span class="h">5 blow</span> <span class="h">8 blow</span></td></tr>
+  <tr><td>10</td><td><span class="r7">♭7</span></td><td>малая септима</td><td>блюзовая, тянет дальше</td><td><span class="h">2 draw ↓1</span> <span class="h">5 draw</span> <span class="h">9 draw</span></td></tr>
+  <tr><td>11</td><td>7</td><td>большая септима</td><td>«джазовая», рвётся к 1</td><td><span class="h">2 draw ↓½</span> <span class="h">5 overblow</span></td></tr>
+  <tr><td>12</td><td><span class="r1">8</span></td><td>октава</td><td>та же нота выше</td><td><span class="h">2 draw</span> → <span class="h">6 blow</span></td></tr>
+</table>
+</div>
+
+<h3>Из чего состоят аккорды</h3>
+<p>Аккорд строится «через одну» ступень, то есть терциями: 1 – 3 – 5 – 7. Главное различие между аккордами — какая именно в них терция и септима.</p>
+<div class="table-wrap">
+<table>
+  <tr><th>Тип</th><th>Обозначение</th><th>Ступени</th><th>Полутоны от основного тона</th><th>Где в прогрессии</th></tr>
+  <tr><td>мажорное трезвучие</td><td>F, B♭</td><td><span class="r1">1</span> <span class="r3">3</span> <span class="r5">5</span></td><td>0 – 4 – 7</td><td>IV (как играет Гуссоу)</td></tr>
+  <tr><td>минорное трезвучие</td><td>B♭m</td><td><span class="r1">1</span> <span class="r3">♭3</span> <span class="r5">5</span></td><td>0 – 3 – 7</td><td>вариант 4-го такта</td></tr>
+  <tr><td>доминантсептаккорд</td><td>A7, D7…</td><td><span class="r1">1</span> <span class="r3">3</span> <span class="r5">5</span> <span class="r7">♭7</span></td><td>0 – 4 – 7 – 10</td><td>все аккорды с «7»: III7, VI7, II7, V7, а в блюзе и I</td></tr>
+  <tr><td>уменьшённый септаккорд</td><td>B°7</td><td><span class="r1">1</span> <span class="r3">♭3</span> <span class="r5">♭5</span> <span class="r7">°7</span></td><td>0 – 3 – 6 – 9</td><td>4-й такт</td></tr>
+</table>
+</div>
+
+<h3>Римские цифры</h3>
+<p>Римская цифра показывает, от какой ступени тональности построен аккорд. В F: I = F, II = G, III = A, IV = B♭, V = C, VI = D. «III7» значит «доминантсептаккорд от 3-й ступени» = A7.</p>
+
+<h3>Главная мысль: роль ноты зависит от аккорда</h3>
+<p>Одно и то же отверстие под разными аккордами играет разные роли. Например, <span class="h">3 draw</span> (нота A):</p>
+<ul>
+  <li>под I (F7) — <span class="r3">3</span>, терция;</li>
+  <li>под III7 (A7) — <span class="r1">1</span>, основной тон;</li>
+  <li>под VI7 (D7) — <span class="r5">5</span>, квинта;</li>
+  <li>под IV (B♭) — не входит в аккорд, звучит как напряжение.</li>
+</ul>
+<div class="key"><b>Какие ступени важнее всего:</b>
+  <ul>
+    <li><span class="r1">1</span> — самая безопасная нота, на ней можно заканчивать фразу;</li>
+    <li><span class="r3">3</span> — сильнее всех говорит, какой сейчас аккорд (мажор или минор);</li>
+    <li><span class="r7">♭7</span> — придаёт блюзовый «доминантовый» цвет и тянет к следующему аккорду;</li>
+    <li><span class="r5">5</span> — нейтральная, подходит почти всегда.</li>
+  </ul>
+  Практическое правило: в момент смены аккорда попадайте на его <span class="r3">3</span> или <span class="r7">♭7</span>. Тогда слушатель «слышит гармонию» даже без аккомпанемента.
+</div>
+
+<h2 id="map">5. Аккорды урока на гармошке <span class="mine">от меня</span></h2>
+<p>Выберите строй гармошки и аккорд прогрессии Гуссоу: на схеме подсветятся отверстия, в которых звучат его ступени. Нажмите на ноту, чтобы увидеть, как её сыграть.</p>
+<div class="key">Гаммы, лады и все ступени от тоники — в отдельной шпаргалке: <a href="../index.html"><b>открыть полную карту гармошки →</b></a></div>
+<div class="hctl">
+  <label class="hsel"><b>Гармошка</b> <select class="harpSel"></select></label>
+  <span class="htonic" id="harpTonic"></span>
+  <label class="hchk"><input type="checkbox" id="showOb"> показать овербенды</label>
+</div>
+
+<div id="chordCtl">
+  <div class="chips" id="chordChips"></div>
+  <div class="chips small" id="roleChips">
+    <span class="chips-label">Показывать:</span>
+    <button type="button" class="chip on r1c" data-role="1">1</button>
+    <button type="button" class="chip on r3c" data-role="3">3 / ♭3</button>
+    <button type="button" class="chip on r5c" data-role="5">5 / ♭5</button>
+    <button type="button" class="chip on r7c" data-role="7">♭7 / °7</button>
+  </div>
+</div>
+
+<div class="harp-wrap"><div class="harp" id="harp"></div></div>
+<p class="hinfo" id="hInfo"></p>
+<p style="font-size:.9rem;color:var(--muted)">Сверху вниз: <b>овербенды</b> (пунктир, если включены), <b>бенды на выдохе</b> (8–10), <b>выдох</b>, номера отверстий, <b>вдох</b>, <b>бенды на вдохе</b> (½, 1 и 1½ тона). Во 2-й позиции тональность на кварту ниже строя гармошки: на гармошке C играем в G, на F — в C, на B♭ (как в уроке) — в F. Тренажёр ниже переключается вместе со схемой.</p>
+
+<details class="mapdet" open>
+  <summary>Та же карта таблицей (отверстия 1–7)</summary>
+  <p>Прочерк значит, что нота не входит в аккорд. ♭7 у IV дана в скобках: Гуссоу играет IV как простое мажорное трезвучие, а ♭7 появляется, если аккомпанемент играет IV7.</p>
+  <div class="table-wrap"><table class="map" id="mapTable"></table></div>
+</details>
+
+<h2 id="ex">6. Упражнения и тренажёр <span class="mine">от меня</span></h2>
+<p>Делайте по порядку, по 10–15 минут в день. Для упражнений 4–6 нужен аккомпанемент: подойдёт приложение вроде iReal Pro или любая минусовка «Trouble in Mind backing track in F» на YouTube.</p>
+
+<div class="ex">
+  <h4>Упражнение 1. Слышать интервалы</h4>
+  <p class="goal">Цель: связать названия интервалов со звучанием.</p>
+  <ol>
+    <li>Сыграйте <span class="h">2 draw</span> (тоника), затем по очереди каждую ноту из таблицы интервалов в разделе 4.</li>
+    <li>Каждый раз вслух называйте ступень: «один… три… пять…».</li>
+    <li>Пропойте каждую ноту голосом. Если можете спеть — вы её слышите.</li>
+    <li>Особенно сравните <span class="h">3 draw ↓½</span> (♭3) и <span class="h">3 draw</span> (3): разница между ними — разница между минором и мажором.</li>
+  </ol>
+</div>
+
+<div class="ex">
+  <h4>Упражнение 2. Арпеджио аккорда I</h4>
+  <p class="goal">Цель: почувствовать, как звучит аккорд, разложенный по нотам.</p>
+  <div class="line">
+    <div><b>2 draw</b><span class="r1">1</span><i>F</i></div>
+    <div><b>3 draw</b><span class="r3">3</span><i>A</i></div>
+    <div><b>4 draw</b><span class="r5">5</span><i>C</i></div>
+    <div><b>5 draw</b><span class="r7">♭7</span><i>E♭</i></div>
+  </div>
+  <p>Играйте вверх и вниз, проговаривая ступени. Это F7 — блюзовый аккорд I. Удобно, что все четыре ноты — вдохи подряд.</p>
+</div>
+
+<div class="ex">
+  <h4>Упражнение 3. Арпеджио каждого аккорда прогрессии</h4>
+  <p class="goal">Цель: знать «адрес» 1–3–5–7 каждого аккорда. Варианты без овербендов.</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Аккорд</th><th>Отверстия</th><th>Ступени</th></tr>
+    <tr><td>I (F7)</td><td><span class="h">2 draw</span> <span class="h">3 draw</span> <span class="h">4 draw</span> <span class="h">5 draw</span></td><td><span class="r1">1</span> <span class="r3">3</span> <span class="r5">5</span> <span class="r7">♭7</span></td></tr>
+    <tr><td>III7 (A7)</td><td><span class="h">2 draw ↓½</span> <span class="h">3 draw</span> <span class="h">6 draw</span> <span class="h">7 draw</span></td><td><span class="r5">5</span> <span class="r1">1</span> <span class="r7">♭7</span> <span class="r1">1</span></td></tr>
+    <tr><td>III7 с овербендами</td><td><span class="h">3 draw</span> <span class="h">4 overblow</span> <span class="h">5 overblow</span> <span class="h">6 draw</span></td><td><span class="r1">1</span> <span class="r3">3</span> <span class="r5">5</span> <span class="r7">♭7</span></td></tr>
+    <tr><td>IV (B♭)</td><td><span class="h">1 blow</span> <span class="h">2 blow</span> <span class="h">3 blow</span> или <span class="h">4 blow</span> <span class="h">5 blow</span> <span class="h">6 blow</span></td><td><span class="r1">1</span> <span class="r3">3</span> <span class="r5">5</span></td></tr>
+    <tr><td>dim (B°7)</td><td><span class="h">4 draw ↓½</span> <span class="h">5 blow</span> <span class="h">6 blow</span> (+ <span class="h">6 overblow</span>)</td><td><span class="r1">1</span> <span class="r3">♭3</span> <span class="r5">♭5</span> (<span class="r7">°7</span>)</td></tr>
+    <tr><td>VI7 (D7)</td><td><span class="h">2 blow</span> <span class="h">3 draw ↓1½</span> <span class="h">3 draw</span> <span class="h">4 draw</span></td><td><span class="r1">1</span> <span class="r3">3</span> <span class="r5">5</span> <span class="r7">♭7</span></td></tr>
+    <tr><td>VI7 вверху</td><td><span class="h">5 blow</span> <span class="h">6 draw ↓½</span> <span class="h">7 draw</span> <span class="h">8 draw</span></td><td><span class="r1">1</span> <span class="r3">3</span> <span class="r5">5</span> <span class="r7">♭7</span></td></tr>
+    <tr><td>II7 (G7)</td><td><span class="h">3 draw ↓1</span> <span class="h">4 draw ↓½</span> <span class="h">5 blow</span> <span class="h">6 blow</span></td><td><span class="r1">1</span> <span class="r3">3</span> <span class="r5">5</span> <span class="r7">♭7</span></td></tr>
+    <tr><td>V7 (C7)</td><td><span class="h">1 draw</span> <span class="h">2 draw ↓½</span> <span class="h">3 draw ↓1</span> <span class="h">4 blow</span></td><td><span class="r1">1</span> <span class="r3">3</span> <span class="r5">5</span> <span class="r7">♭7</span></td></tr>
+  </table>
+  </div>
+  <p>Начните с I, II7 и V7: в них нет сложных бендов, кроме ↓1. VI7 внизу (бенд ↓1½) — самый трудный, оставьте его на потом.</p>
+</div>
+
+<div class="ex">
+  <h4>Упражнение 4. Одна нота — разные роли</h4>
+  <p class="goal">Цель: услышать, как меняется «цвет» ноты при смене аккорда.</p>
+  <ol>
+    <li>Включите аккомпанемент и тяните только <span class="h">3 draw</span> всю прогрессию. Слушайте: на I она светлая (3), на III7 — устойчивая (1), на IV — напряжённая (не из аккорда), на VI7 — снова спокойная (5).</li>
+    <li>То же самое с <span class="h">6 blow</span> (F): на I — <span class="r1">1</span>, на IV — <span class="r5">5</span>, на dim — <span class="r5">♭5</span>, на II7 — <span class="r7">♭7</span>.</li>
+    <li>Сверяйтесь со <a href="#map">схемой из раздела 5</a> и называйте роль вслух в момент смены аккорда.</li>
+  </ol>
+</div>
+
+<div class="ex">
+  <h4>Упражнение 5. Опорные линии через первые 4 такта</h4>
+  <p class="goal">Цель: проводить мелодию по ближайшим нотам аккордов. Это и есть «думать аккордами».</p>
+  <p><b>Линия А</b> — это развёрнутая фраза Гуссоу «3 draw → 4 draw». Ноты идут вверх по полутонам: A – A – B♭ – B – C.</p>
+  <div class="line">
+    <div><b>3 draw</b><span class="r3">3</span><i>I · F</i></div>
+    <div><b>3 draw</b><span class="r1">1</span><i>III7 · A7</i></div>
+    <div><b>4 blow</b><span class="r1">1</span><i>IV · B♭</i></div>
+    <div><b>4 draw ↓½</b><span class="r1">1</span><i>dim · B°7</i></div>
+    <div><b>4 draw</b><span class="r5">5</span><i>I · F</i></div>
+  </div>
+  <p><b>Линия Б</b> — самая простая, почти на одном отверстии:</p>
+  <div class="line">
+    <div><b>6 blow</b><span class="r1">1</span><i>I · F</i></div>
+    <div><b>6 draw</b><span class="r7">♭7</span><i>III7 · A7</i></div>
+    <div><b>6 blow</b><span class="r5">5</span><i>IV · B♭</i></div>
+    <div><b>6 blow</b><span class="r5">♭5</span><i>dim · B°7</i></div>
+    <div><b>6 blow</b><span class="r1">1</span><i>I · F</i></div>
+  </div>
+  <p>Сначала играйте по одной длинной ноте на такт. Когда линия ляжет в руки, украшайте её: добавляйте соседние ноты перед опорной, но на смене аккорда всё равно приходите на неё.</p>
+</div>
+
+<div class="ex">
+  <h4>Упражнение 6. Опорная линия через каданс I – VI7 – II7 – V7</h4>
+  <p class="goal">Цель: провести мелодию по терциям и септимам, как это делают в джазе и рэгтайме.</p>
+  <p><b>Нижний вариант</b> (без овербендов):</p>
+  <div class="line">
+    <div><b>3 draw</b><span class="r3">3</span><i>I · F</i></div>
+    <div><b>3 draw ↓1½</b><span class="r3">3</span><i>VI7 · D7</i></div>
+    <div><b>3 blow</b><span class="r7">♭7</span><i>II7 · G7</i></div>
+    <div><b>2 draw ↓½</b><span class="r3">3</span><i>V7 · C7</i></div>
+    <div><b>2 draw</b><span class="r1">1</span><i>I · F</i></div>
+  </div>
+  <p><b>Верхний вариант</b> (через «открытие» Гуссоу, 6 draw ↓½):</p>
+  <div class="line">
+    <div><b>7 draw</b><span class="r3">3</span><i>I · F</i></div>
+    <div><b>6 draw ↓½</b><span class="r3">3</span><i>VI7 · D7</i></div>
+    <div><b>6 blow</b><span class="r7">♭7</span><i>II7 · G7</i></div>
+    <div><b>5 overblow</b><span class="r3">3</span><i>V7 · C7</i></div>
+    <div><b>6 blow</b><span class="r1">1</span><i>I · F</i></div>
+  </div>
+  <p>Обратите внимание: каждая следующая нота лишь на полтона–тон ниже предыдущей. Терция одного аккорда плавно переходит в септиму следующего, а септима — в терцию. Так гармония «слышна» внутри одной мелодической линии.</p>
+</div>
+
+<h3>Тренажёр: какая это ступень?</h3>
+<p>Тренажёр показывает аккорд и отверстие. Ответьте, какую роль эта нота играет в аккорде. Сверяться со <a href="#map">схемой</a> можно, но постарайтесь со временем отвечать без неё.</p>
+<div class="quiz" id="quiz">
+  <p class="q" id="qText"></p>
+  <div class="btns" id="qBtns"></div>
+  <p class="fb" id="qFb"></p>
+  <div class="bar">
+    <span id="qScore">Верно: 0 из 0</span>
+    <label>Гармошка <select class="harpSel"></select></label>
+    <label><input type="checkbox" id="qNoOb"> без овербендов</label>
+    <button type="button" id="qNext">Следующий вопрос →</button>
+  </div>
+</div>
+
+<h2 id="plan">7. Как заниматься <span class="mine">от меня</span></h2>
+<ol>
+  <li>Выучите последовательность аккордов на слух. Хорошо подходят «Trouble in Mind» и «Georgia on My Mind».</li>
+  <li>Отработайте переход I → III7 через <span class="h">3 draw</span> и <span class="h">3 draw ↓1</span>.</li>
+  <li>Медленно отработайте уменьшённое арпеджио: <span class="h">2 draw</span> – <span class="h">3 draw ↓½</span> – <span class="h">4 draw ↓½</span> – <span class="h">5 blow</span> – <span class="h">6 blow</span>, вверх и вниз.</li>
+  <li>Отработайте трезвучие VI7: <span class="h">5 blow</span> – <span class="h">6 draw ↓½</span> – <span class="h">7 draw</span>, затем нижний вариант <span class="h">2 blow</span> – <span class="h">3 draw ↓1½</span>.</li>
+  <li>Сыграйте каданс I – VI7 – II7 – V по две доли на аккорд под метроном или минусовку. Сначала медленно, как «Georgia», потом в темпе, как «Stagger Lee».</li>
+  <li>Если умеете овербенды, добавьте <span class="h">6 overblow</span> на IV и на уменьшённый аккорд.</li>
+</ol>
+
+<footer>Обозначения бендов: ↓½ — на полтона, ↓1 — на тон, ↓1½ — на полтора тона.</footer>
+
+</main>
+<script>
+(function () {
+  // ---------- Теория: правописание нот ----------
+  var LET = ['C', 'D', 'E', 'F', 'G', 'A', 'B'], NAT = [0, 2, 4, 5, 7, 9, 11];
+  var ACC = { '-2': '𝄫', '-1': '♭', '0': '', '1': '♯', '2': '𝄪' };
+  function mod(n, m) { return ((n % m) + m) % m; }
+  function spell(li, pc) {
+    li = mod(li, 7);
+    var a = mod(pc - NAT[li], 12); if (a > 6) a -= 12;
+    return LET[li] + ACC[a];
+  }
+  // Строи гармошек: [название, высота, индекс буквы]
+  var HARPS = [['C', 0, 0], ['D♭', 1, 1], ['D', 2, 1], ['E♭', 3, 2], ['E', 4, 2], ['F', 5, 3],
+               ['F♯', 6, 3], ['G', 7, 4], ['A♭', 8, 5], ['A', 9, 5], ['B♭', 10, 6], ['B', 11, 6]];
+  var KEYDEG = ['1', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
+  var DEG_LI = [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6];
+  var harp = 0, tonicPc = 7, tonicLi = 4;
+  function keyNote(rel) { return spell(tonicLi + DEG_LI[mod(rel, 12)], tonicPc + rel); }
+
+  // ---------- Аккорды прогрессии (от тоники) ----------
+  var DOM7 = [[0, 0, '1'], [4, 2, '3'], [7, 4, '5'], [10, 6, '♭7']];
+  var CHORDS = [
+    { name: 'I', root: 0, li: 0, suf: '7', tones: DOM7 },
+    { name: 'III7', root: 4, li: 2, suf: '7', tones: DOM7 },
+    { name: 'IV', root: 5, li: 3, suf: '', tones: [[0, 0, '1'], [4, 2, '3'], [7, 4, '5'], [10, 6, '(♭7)']] },
+    { name: 'dim', root: 6, li: 3, suf: '°7', tones: [[0, 0, '1'], [3, 2, '♭3'], [6, 4, '♭5'], [9, 6, '°7']] },
+    { name: 'VI7', root: 9, li: 5, suf: '7', tones: DOM7 },
+    { name: 'II7', root: 2, li: 1, suf: '7', tones: DOM7 },
+    { name: 'V7', root: 7, li: 4, suf: '7', tones: DOM7 }
+  ];
+  CHORDS.forEach(function (c) { c.iv = {}; c.tones.forEach(function (t) { c.iv[t[0]] = t[2]; }); });
+  function applyKey() {
+    var h = HARPS[harp];
+    tonicPc = mod(h[1] + 7, 12); tonicLi = mod(h[2] + 4, 7);
+    CHORDS.forEach(function (c) {
+      c.sub = spell(tonicLi + c.li, tonicPc + c.root) + c.suf;
+      c.names = {};
+      var arr = c.tones.map(function (t) {
+        var n = spell(tonicLi + c.li + t[1], tonicPc + c.root + t[0]);
+        c.names[t[0]] = n;
+        return t[2].charAt(0) === '(' ? '(' + n + ')' : n;
+      });
+      c.notes = arr.join(' – ');
+    });
+  }
+  function role(ch, rel) { return ch.iv[mod(rel - ch.root, 12)] || null; }
+  function noteIn(ch, rel) { var r = role(ch, rel); return r ? ch.names[mod(rel - ch.root, 12)] : keyNote(rel); }
+  function cls(r) {
+    if (!r) return 'off';
+    r = r.replace(/[()]/g, '');
+    if (r === '1') return 'r1';
+    if (r.indexOf('3') >= 0) return 'r3';
+    if (r.indexOf('5') >= 0) return 'r5';
+    return 'r7';
+  }
+  function degCls(rel) {
+    return { 0: 'r1', 3: 'r3', 4: 'r3', 6: 'r5', 7: 'r5', 10: 'r7', 11: 'r7' }[rel] || 'rx';
+  }
+
+  // ---------- Раскладка Richter (полутона от строя гармошки) ----------
+  var BLOW = [0, 4, 7, 12, 16, 19, 24, 28, 31, 36];
+  var DRAW = [2, 7, 11, 14, 17, 21, 23, 26, 29, 33];
+  var BENDTXT = ['', '↓½', '↓1', '↓1½'];
+  var CELLS = [];
+  (function () {
+    for (var i = 0; i < 10; i++) {
+      var n = i + 1, b = BLOW[i], d = DRAW[i], k;
+      CELLS.push({ hole: n, row: 'blow', semi: b, lab: n + ' blow', kind: 'main' });
+      CELLS.push({ hole: n, row: 'draw', semi: d, lab: n + ' draw', kind: 'main' });
+      if (d > b) {
+        for (k = 1; k <= d - b - 1; k++) CELLS.push({ hole: n, row: 'db' + k, semi: d - k, lab: n + ' draw ' + BENDTXT[k], kind: 'bend' });
+        if (n === 1 || n >= 4) CELLS.push({ hole: n, row: 'ob', semi: d + 1, lab: n + ' overblow', kind: 'ob' });
+      } else {
+        for (k = 1; k <= b - d - 1; k++) CELLS.push({ hole: n, row: 'bb' + k, semi: b - k, lab: n + ' blow ' + BENDTXT[k], kind: 'bend' });
+        if (n !== 8) CELLS.push({ hole: n, row: 'ob', semi: b + 1, lab: n + ' overdraw', kind: 'ob' });
+      }
+    }
+  })();
+  var ROWS = ['ob', 'bb2', 'bb1', 'blow', 'num', 'draw', 'db1', 'db2', 'db3'];
+
+  // ---------- Состояние ----------
+  var mode = 'chord', chordIdx = 1, roles = { '1': true, '3': true, '5': true, '7': true };
+  var degs = { 0: true, 3: true, 5: true, 6: true, 7: true, 10: true };
+  try {
+    var s = JSON.parse(localStorage.getItem('harpMap') || 'null');
+    if (s) { harp = s.harp | 0; mode = s.mode || mode; chordIdx = s.chord | 0; }
+  } catch (e) {}
+  function save() { try { localStorage.setItem('harpMap', JSON.stringify({ harp: harp, mode: hasDeg ? mode : savedMode, chord: chordIdx })); } catch (e) {} }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var harpSels = document.querySelectorAll('.harpSel'), showOb = $('showOb'), hInfo = $('hInfo');
+  var hasMap = !!$('harp'), hasQuiz = !!$('quiz'), hasDeg = !!$('degCtl');
+  var savedMode = mode;
+  if (!hasDeg) mode = 'chord';
+
+  harpSels.forEach(function (sel) {
+    HARPS.forEach(function (h, i) {
+      var o = document.createElement('option');
+      o.value = i; o.textContent = h[0] + ' → играем в ' + spell(h[2] + 4, h[1] + 7);
+      sel.appendChild(o);
+    });
+    sel.onchange = function () { harp = +sel.value; renderAll(); };
+  });
+
+  function rel(cell) { return mod(cell.semi - 7, 12); }
+  function cellState(cell) {
+    var r = rel(cell);
+    if (mode === 'chord') {
+      var ch = CHORDS[chordIdx], ro = role(ch, r);
+      var key = ro ? ro.replace(/[()♭°]/g, '').charAt(0) : null;
+      if (ro && roles[key]) return { on: true, cls: cls(ro), deg: ro, note: noteIn(ch, r) };
+      return { on: false, deg: ro || '', note: noteIn(ch, r) };
+    }
+    if (degs[r]) return { on: true, cls: degCls(r), deg: KEYDEG[r], note: keyNote(r) };
+    return { on: false, deg: KEYDEG[r], note: keyNote(r) };
+  }
+
+  function renderHarp() {
+    var html = '';
+    ROWS.forEach(function (row) {
+      if (row === 'ob' && !showOb.checked) return;
+      html += '<div class="hrow hrow-' + row + '">';
+      for (var n = 1; n <= 10; n++) {
+        if (row === 'num') { html += '<div class="hnum"><span>' + n + '</span></div>'; continue; }
+        var c = null;
+        for (var j = 0; j < CELLS.length; j++) if (CELLS[j].hole === n && CELLS[j].row === row) { c = CELLS[j]; break; }
+        if (!c) { html += '<div class="hcell empty"></div>'; continue; }
+        var st = cellState(c);
+        html += '<button type="button" class="hcell k-' + c.kind + (st.on ? ' lit ' + st.cls : ' dim') + '" data-i="' + CELLS.indexOf(c) + '" title="' + c.lab + '">' +
+          '<b>' + st.note + '</b><small>' + (st.on ? st.deg : '&nbsp;') + '</small></button>';
+      }
+      html += '</div>';
+    });
+    $('harp').innerHTML = html;
+  }
+
+  function describe() {
+    if (mode === 'chord') {
+      var ch = CHORDS[chordIdx];
+      hInfo.innerHTML = '<b>' + ch.name + ' = ' + ch.sub + '</b>: ' + ch.notes + '. Тоника — ' + keyNote(0) + '.';
+    } else {
+      var list = degList();
+      if (!list.length) { hInfo.innerHTML = 'Выберите ступени или готовый набор.'; return; }
+      var pr = activePreset();
+      var txt = (pr ? '<b>' + pr.textContent + '</b> от ' + keyNote(0) + ': ' : 'Подсвечено от тоники ' + keyNote(0) + ': ') +
+        list.map(function (r) { return KEYDEG[r] + ' (' + keyNote(r) + ')'; }).join(', ') + '.';
+      // Какие ступени в отверстиях 1–6 есть только через овербенд
+      var plain = {};
+      CELLS.forEach(function (c) { if (c.hole <= 6 && c.kind !== 'ob') plain[rel(c)] = true; });
+      var obOnly = list.filter(function (r) { return !plain[r]; });
+      if (obOnly.length) txt += ' В отверстиях 1–6 только овербендом: ' + obOnly.map(function (r) { return KEYDEG[r]; }).join(', ') + '.';
+      hInfo.innerHTML = txt;
+    }
+  }
+
+  function renderControls() {
+    $('harpTonic').innerHTML = 'Тональность во 2-й позиции: <b>' + keyNote(0) + '</b>';
+    $('chordCtl').hidden = mode !== 'chord';
+    if (hasDeg) $('degCtl').hidden = mode !== 'deg';
+    document.querySelectorAll('#modeSeg button').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === mode); });
+    var ch = '';
+    CHORDS.forEach(function (c, i) {
+      ch += '<button type="button" class="chip' + (i === chordIdx ? ' on' : '') + '" data-chord="' + i + '">' + c.name + ' <small>' + c.sub + '</small></button>';
+    });
+    $('chordChips').innerHTML = ch;
+    document.querySelectorAll('#roleChips .chip').forEach(function (b) { b.classList.toggle('on', !!roles[b.dataset.role]); });
+    var dg = '';
+    KEYDEG.forEach(function (d, i) {
+      dg += '<button type="button" class="chip' + (degs[i] ? ' on' : '') + '" data-deg="' + i + '">' + d + ' <small>' + keyNote(i) + '</small></button>';
+    });
+    if (hasDeg) $('degChips').innerHTML = dg;
+    var pr = activePreset();
+    document.querySelectorAll('#presets .chip').forEach(function (b) { b.classList.toggle('on', b === pr); });
+  }
+  function degList() {
+    return Object.keys(degs).filter(function (k) { return degs[k]; }).map(Number).sort(function (a, b) { return a - b; });
+  }
+  function activePreset() {
+    var cur = degList().join(','), found = null;
+    if (!cur) return null;
+    document.querySelectorAll('#presets .chip').forEach(function (b) { if (b.dataset.preset === cur) found = b; });
+    return found;
+  }
+
+  function renderAll() {
+    applyKey();
+    harpSels.forEach(function (sel) { sel.value = harp; });
+    if (hasMap) { renderControls(); renderHarp(); describe(); renderMap(); }
+    if (hasQuiz) next();
+    save();
+  }
+
+  if (hasMap) {
+  showOb.onchange = renderHarp;
+  if ($('modeSeg')) $('modeSeg').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; mode = b.dataset.mode; renderControls(); renderHarp(); describe(); save(); };
+  $('chordChips').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; chordIdx = +b.dataset.chord; renderControls(); renderHarp(); describe(); save(); };
+  $('roleChips').onclick = function (e) { var b = e.target.closest('button[data-role]'); if (!b) return; roles[b.dataset.role] = !roles[b.dataset.role]; renderControls(); renderHarp(); };
+  if (hasDeg) $('degCtl').onclick = function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.deg !== undefined) { var d = +b.dataset.deg; degs[d] = !degs[d]; }
+    else if (b.dataset.preset !== undefined) {
+      degs = {};
+      if (b.dataset.preset) b.dataset.preset.split(',').forEach(function (x) { degs[+x] = true; });
+    }
+    renderControls(); renderHarp(); describe();
+  };
+  $('harp').onclick = function (e) {
+    var b = e.target.closest('button.hcell'); if (!b) return;
+    var c = CELLS[+b.dataset.i], r = rel(c), st = cellState(c);
+    var txt = '<span class="h">' + c.lab + '</span> = <b>' + st.note + '</b>, от тоники ' + keyNote(0) + ' это ' + KEYDEG[r];
+    if (mode === 'chord') {
+      var ch = CHORDS[chordIdx], ro = role(ch, r);
+      txt += ro ? '; в ' + ch.sub + ' — ступень <b>' + ro + '</b>.' : '; в ' + ch.sub + ' не входит.';
+    } else txt += '.';
+    hInfo.innerHTML = txt;
+  };
+
+  }
+
+  // ---------- Таблица (отверстия 1–7, от тоники) ----------
+  var HOLES = [
+    ['1 blow', 5], ['1 draw ↓½', 6], ['1 draw', 7], ['2 blow', 9],
+    ['2 draw ↓1', 10], ['2 draw ↓½', 11], ['2 draw / 3 blow', 0],
+    ['3 draw ↓1½', 1], ['3 draw ↓1', 2], ['3 draw ↓½', 3], ['3 draw', 4],
+    ['4 blow', 5], ['4 draw ↓½', 6], ['4 draw', 7], ['4 overblow', 8],
+    ['5 blow', 9], ['5 draw', 10], ['5 overblow', 11],
+    ['6 blow', 0], ['6 draw ↓½', 1], ['6 draw', 2], ['6 overblow', 3],
+    ['7 draw', 4], ['7 blow', 5]
+  ];
+  function renderMap() {
+    var h = '<tr><th>Отверстие</th><th>Нота</th><th>от ' + keyNote(0) + '</th>';
+    CHORDS.forEach(function (c) { h += '<th>' + c.name + '<small>' + c.sub + '</small></th>'; });
+    h += '</tr>';
+    HOLES.forEach(function (x) {
+      h += '<tr><td><span class="h">' + x[0] + '</span></td><td>' + keyNote(x[1]) + '</td><td>' + KEYDEG[x[1]] + '</td>';
+      CHORDS.forEach(function (c) {
+        var r = role(c, x[1]);
+        h += '<td class="' + cls(r) + '">' + (r || '—') + '</td>';
+      });
+      h += '</tr>';
+    });
+    $('mapTable').innerHTML = h;
+  }
+
+  // ---------- Тренажёр ----------
+  var ANSWERS = ['1', '♭3', '3', '♭5', '5', '°7', '♭7', 'нет в аккорде'];
+  var qText = $('qText'), qBtns = $('qBtns'), qFb = $('qFb'), qScore = $('qScore'), noOb = $('qNoOb');
+  var cur = null, right = 0, total = 0, answered = false;
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function next() {
+    var ch = pick(CHORDS);
+    var pool = HOLES.filter(function (x) { return !(noOb.checked && x[0].indexOf('overblow') >= 0); });
+    var inC = pool.filter(function (x) { return role(ch, x[1]); });
+    var outC = pool.filter(function (x) { return !role(ch, x[1]); });
+    var hole = (Math.random() < 0.7 && inC.length) ? pick(inC) : pick(outC);
+    var r = role(ch, hole[1]);
+    cur = { ch: ch, hole: hole, ans: r ? r.replace(/[()]/g, '') : 'нет в аккорде' };
+    answered = false;
+    qText.innerHTML = 'Гармошка ' + HARPS[harp][0] + ', аккорд <b>' + ch.name + ' (' + ch.sub + ')</b>, отверстие <span class="h">' + hole[0] + '</span>. Какая это ступень аккорда?';
+    qFb.innerHTML = '';
+    qBtns.innerHTML = '';
+    ANSWERS.forEach(function (a) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = a;
+      b.onclick = function () { answer(a); };
+      qBtns.appendChild(b);
+    });
+  }
+  function answer(a) {
+    if (answered) return;
+    answered = true; total++;
+    var ok = a === cur.ans;
+    if (ok) right++;
+    var expl = cur.hole[0] + ' = ' + noteIn(cur.ch, cur.hole[1]) + '. ' + cur.ch.sub + ' = ' + cur.ch.notes + '. ';
+    expl += cur.ans === 'нет в аккорде' ? 'Этой ноты нет в аккорде.' : 'Значит, это ' + cur.ans + '.';
+    qFb.innerHTML = (ok ? '<span class="ok">Верно!</span> ' : '<span class="bad">Нет, правильно: ' + cur.ans + '.</span> ') + expl;
+    qScore.textContent = 'Верно: ' + right + ' из ' + total;
+  }
+  if (hasQuiz) {
+    $('qNext').onclick = next;
+    noOb.onchange = next;
+  }
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
